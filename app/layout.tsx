@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { DM_Sans, Playfair_Display } from "next/font/google";
-import { getVerticalLabel, verticals } from "@/lib/articles";
+import { getVerticalLabel, verticals } from "@/lib/article-taxonomy";
 import "./globals.css";
 
 const bodyFont = DM_Sans({
@@ -16,7 +17,8 @@ const displayFont = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "NewsBites",
-  description: "A fast, editorial-first news prototype for TechInsiderBytes.",
+  description:
+    "Simple news with an editorial pulse. NewsBites turns complex stories into sharp, readable briefings across AI, finance, global politics, and trends.",
 };
 
 export default function RootLayout({
@@ -30,13 +32,31 @@ export default function RootLayout({
       className={`${bodyFont.variable} ${displayFont.variable}`}
     >
       <body>
+        <div className="site-backdrop" aria-hidden="true">
+          <div className="site-orb site-orb-left" />
+          <div className="site-orb site-orb-right" />
+          <div className="site-gridline" />
+        </div>
         <div className="site-frame">
           <header className="site-header">
             <Link className="brand-mark" href="/">
-              <span className="brand-tag">TechInsiderBytes</span>
-              <span className="brand-name">NewsBites</span>
+              <Image
+                src="/brand-assets/ProfessionalLogo.png"
+                alt="TechInsiderBytes NewsBites"
+                width={180}
+                height={98}
+                className="brand-logo"
+                priority
+              />
+              <span className="brand-copy">
+                <span className="brand-tag">TechInsiderBytes</span>
+                <span className="brand-name">NewsBites</span>
+              </span>
             </Link>
             <nav className="main-nav">
+              <Link href="/">News</Link>
+              <Link href="/#edition">Edition</Link>
+              <Link href="/app">App</Link>
               {verticals.map((vertical) => (
                 <Link key={vertical} href={`/category/${vertical}`}>
                   {getVerticalLabel(vertical)}

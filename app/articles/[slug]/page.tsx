@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { getAllArticles, getArticleBySlug, getVerticalLabel } from "@/lib/articles";
+import { getVerticalLabel } from "@/lib/article-taxonomy";
+import { getAllArticles, getArticleBySlug } from "@/lib/articles";
 
 export function generateStaticParams() {
   return getAllArticles().map((article) => ({ slug: article.slug }));
@@ -45,6 +47,12 @@ export default async function ArticlePage({
           <div className="sidebar-panel">
             <h2>Status</h2>
             <p>{article.status}</p>
+          </div>
+          <div className="sidebar-panel">
+            <h2>Reader App</h2>
+            <Link className="lane-link" href={`/app?article=${article.slug}`}>
+              Open this story in the app
+            </Link>
           </div>
         </aside>
       </article>

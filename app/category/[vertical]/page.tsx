@@ -1,10 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
+import { getVerticalLabel, verticals, type Vertical } from "@/lib/article-taxonomy";
 import {
   getArticlesByVertical,
-  getVerticalLabel,
-  verticals,
-  type Vertical,
 } from "@/lib/articles";
 
 export function generateStaticParams() {
@@ -29,7 +28,11 @@ export default async function CategoryPage({
     <main className="page-shell">
       <section className="section-block">
         <div className="section-heading">
-          <h2>{getVerticalLabel(typedVertical)}</h2>
+          <div>
+            <p className="eyebrow">Category Lane</p>
+            <h2>{getVerticalLabel(typedVertical)}</h2>
+          </div>
+          <Link href={`/app?vertical=${typedVertical}`}>Open in app</Link>
         </div>
         {articles.length ? (
           <div className="story-grid">

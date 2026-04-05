@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
+import { getVerticalLabel, verticals } from "@/lib/article-taxonomy";
 import {
   getFeaturedArticle,
   getLatestArticles,
-  getVerticalLabel,
   getVerticalPreview,
-  verticals,
 } from "@/lib/articles";
 
 export default function Home() {
@@ -16,25 +15,51 @@ export default function Home() {
 
   return (
     <main className="page-shell">
-      <section className="hero-grid">
-        <div className="hero-copy">
-          <p className="eyebrow">Simple News, Built For Fast Reading</p>
-          <h1>
-            NewsBites turns dense headlines into sharp, readable briefings.
-          </h1>
+      <section className="hero-poster">
+        <div className="hero-poster-copy">
+          <p className="eyebrow">Simple News Approach</p>
+          <p className="hero-brand">NewsBites</p>
+          <h1>Big stories, stripped to the signal.</h1>
           <p className="lede">
-            Editorial presentation, fast scanning, and a deliberate separation
-            between serious reporting and lighter trend coverage.
+            An editorial-first daily report built for fast comprehension:
+            cleaner hierarchy, fewer distractions, and article flows that stay
+            readable on every screen.
           </p>
+          <div className="hero-actions">
+            <Link className="primary-link" href="/app">
+              Enter reader app
+            </Link>
+            <Link className="secondary-link secondary-link-light" href="/app?random=1">
+              Start anywhere
+            </Link>
+          </div>
+        </div>
+
+        <div className="hero-poster-aside">
+          <div className="hero-edition">
+            <p className="story-kicker">Current Edition</p>
+            <p className="hero-edition-date">April briefing set</p>
+            <p className="hero-edition-copy">
+              Four lanes. One reading rhythm. Every story can move from glance
+              to deep read without changing products.
+            </p>
+          </div>
+
           <div className="chip-row">
             {verticals.map((vertical) => (
-              <Link key={vertical} className="chip" href={`/category/${vertical}`}>
+              <Link
+                key={vertical}
+                className="chip chip-ghost"
+                href={`/category/${vertical}`}
+              >
                 {getVerticalLabel(vertical)}
               </Link>
             ))}
           </div>
         </div>
+      </section>
 
+      <section className="hero-grid" id="edition">
         {featured ? (
           <article className="hero-story">
             <p className="story-kicker">Lead Story</p>
@@ -44,23 +69,52 @@ export default function Home() {
             </p>
             <h2>{featured.title}</h2>
             <p>{featured.lead}</p>
-            <Link className="primary-link" href={`/articles/${featured.slug}`}>
-              Read the lead story
-            </Link>
+            <div className="hero-story-actions">
+              <Link className="primary-link" href={`/articles/${featured.slug}`}>
+                Read article
+              </Link>
+              <Link className="secondary-link secondary-link-inverse" href={`/app?article=${featured.slug}`}>
+                Read in app
+              </Link>
+            </div>
           </article>
         ) : null}
+
+        <div className="hero-copy hero-copy-side">
+          <p className="eyebrow">How It Reads</p>
+          <h2>Homepage for triage. App for focus.</h2>
+          <p className="lede">
+            The front page stays sharp and skimmable while the reader app
+            handles article-by-article immersion, category jumps, and random
+            discovery.
+          </p>
+          <div className="headline-stack">
+            <div>
+              <p className="article-meta">Surface</p>
+              <p className="headline-stack-copy">Poster-like lead story and crisp lane overviews.</p>
+            </div>
+            <div>
+              <p className="article-meta">Reader</p>
+              <p className="headline-stack-copy">Snap navigation with a single active article at a time.</p>
+            </div>
+            <div>
+              <p className="article-meta">Pace</p>
+              <p className="headline-stack-copy">Brief enough to scan, structured enough to trust.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="section-block">
         <div className="section-heading">
           <h2>Latest Stories</h2>
-          <Link href="/about">About NewsBites</Link>
+          <Link href="/app">Launch reading app</Link>
         </div>
         <div className="headline-ribbon">
-          <span>Operator note</span>
+          <span>Reading mode</span>
           <p>
-            Approval-first publishing is still in effect. This shell is designed
-            for fast reading on mobile before any wider automation is enabled.
+            Use the app for category jumps, random discovery, and scroll-snapped
+            article navigation without leaving the main product surface behind.
           </p>
         </div>
         <div className="story-grid">
@@ -115,6 +169,28 @@ export default function Home() {
               </section>
             );
           })}
+        </div>
+      </section>
+
+      <section className="section-block section-block-cta">
+        <div className="section-heading">
+          <h2>Built For Repeat Reading</h2>
+          <span className="section-note">Designed for daily use, not one-off clicks.</span>
+        </div>
+        <div className="cta-band">
+          <p>
+            NewsBites is being prepared as a disciplined editorial product:
+            clearer categories, stronger motion cues, and a calmer information
+            hierarchy before the publishing pipeline scales.
+          </p>
+          <div className="hero-actions">
+            <Link className="primary-link" href="/app">
+              Open app mode
+            </Link>
+            <Link className="secondary-link" href="/about">
+              Read the brief
+            </Link>
+          </div>
         </div>
       </section>
     </main>

@@ -1,11 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
+import { type Vertical } from "@/lib/article-taxonomy";
 
 const articlesDirectory = path.join(process.cwd(), "content/articles");
-
-export const verticals = ["ai", "finance", "global-politics", "trends"] as const;
-export type Vertical = (typeof verticals)[number];
 
 type Frontmatter = {
   title: string;
@@ -23,18 +21,8 @@ export type Article = Frontmatter & {
   content: string;
   dateLabel: string;
   readingTime: string;
+  previewText: string;
 };
-
-const verticalLabels: Record<Vertical, string> = {
-  ai: "AI",
-  finance: "Finance",
-  "global-politics": "Global Politics",
-  trends: "Trends",
-};
-
-export function getVerticalLabel(vertical: Vertical) {
-  return verticalLabels[vertical];
-}
 
 function getReadingTime(content: string) {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
@@ -49,6 +37,21 @@ function formatDate(date: string) {
   }).format(new Date(date));
 }
 
+function getPreviewText(content: string, maxLength = 220) {
+  const cleaned = content
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`>-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (cleaned.length <= maxLength) {
+    return cleaned;
+  }
+
+  return `${cleaned.slice(0, maxLength).trimEnd()}…`;
+}
+
 function readArticleFile(fileName: string): Article {
   const filePath = path.join(articlesDirectory, fileName);
   const fileContents = fs.readFileSync(filePath, "utf8");
@@ -60,6 +63,7 @@ function readArticleFile(fileName: string): Article {
     content,
     dateLabel: formatDate(frontmatter.date),
     readingTime: getReadingTime(content),
+    previewText: getPreviewText(content),
   };
 }
 
