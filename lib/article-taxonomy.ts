@@ -1,14 +1,12 @@
-export const verticals = ["ai", "finance", "global-politics", "trends"] as const;
+export type Vertical = string;
 
-export type Vertical = (typeof verticals)[number];
-
-const verticalLabels: Record<Vertical, string> = {
-  ai: "AI",
-  finance: "Finance",
-  "global-politics": "Global Politics",
-  trends: "Trends",
-};
+function titleCase(value: string) {
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export function getVerticalLabel(vertical: Vertical) {
-  return verticalLabels[vertical];
+  return vertical ? titleCase(String(vertical)) : "Unknown";
 }

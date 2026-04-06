@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getVerticalLabel, verticals } from "@/lib/article-taxonomy";
+import { getVerticalLabel } from "@/lib/article-taxonomy";
 import {
+  getAllVerticals,
   getFeaturedArticle,
   getLatestArticles,
   getVerticalPreview,
@@ -12,6 +13,7 @@ export default function Home() {
   const latestStories = getLatestArticles(4).filter(
     (article) => article.slug !== featured?.slug,
   );
+  const verticals = getAllVerticals();
 
   return (
     <main className="page-shell">

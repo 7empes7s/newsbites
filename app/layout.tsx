@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { SiteChrome } from "@/components/site-chrome";
+import { getAllVerticals } from "@/lib/articles";
 import "./globals.css";
 
 const bodyFont = DM_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const verticals = getAllVerticals();
   return (
     <html
       lang="en"
@@ -41,7 +43,7 @@ export default function RootLayout({
           <div className="site-orb site-orb-right" />
           <div className="site-gridline" />
         </div>
-        <SiteChrome>{children}</SiteChrome>
+        <SiteChrome verticals={verticals}>{children}</SiteChrome>
       </body>
     </html>
   );

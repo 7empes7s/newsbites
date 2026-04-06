@@ -2,8 +2,9 @@
 
 import { startTransition, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { getVerticalLabel, verticals, type Vertical } from "@/lib/article-taxonomy";
+import { getVerticalLabel, type Vertical } from "@/lib/article-taxonomy";
 import type { Article } from "@/lib/articles";
+import { SiteFooter } from "@/components/site-footer";
 
 type AppArticle = Pick<
   Article,
@@ -20,9 +21,7 @@ type AppArticle = Pick<
 
 type FilterValue = Vertical | "all";
 
-const filterOptions: FilterValue[] = ["all", ...verticals];
-
-function isVertical(value: string | null): value is Vertical {
+function isVertical(value: string | null, verticals: Vertical[]): value is Vertical {
   return Boolean(value && verticals.includes(value as Vertical));
 }
 
@@ -31,8 +30,11 @@ function getInitialState(
   queryVertical: string | null,
   queryArticle: string | null,
   wantsRandom: boolean,
+  verticals: Vertical[],
 ) {
-  const nextFilter: FilterValue = isVertical(queryVertical) ? queryVertical : "all";
+  const nextFilter: FilterValue = isVertical(queryVertical, verticals)
+    ? queryVertical
+    : "all";
   const nextVisible =
     nextFilter === "all"
       ? articles
@@ -53,6 +55,7 @@ function getInitialState(
 export function NewsAppShell({
   articles,
   initialQuery,
+  verticals,
 }: {
   articles: AppArticle[];
   initialQuery: {
@@ -60,17 +63,23 @@ export function NewsAppShell({
     random?: string;
     vertical?: string;
   };
+  verticals: Vertical[];
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const articleRefs = useRef<(HTMLElement | null)[]>([]);
+  const [isCompactReader, setIsCompactReader] = useState(false);
   const [{ activeFilter, activeSlug }, setReaderState] = useState(() =>
     getInitialState(
       articles,
       initialQuery.vertical ?? null,
       initialQuery.article ?? null,
       initialQuery.random === "1",
+      verticals,
     ),
   );
+
+  const filterOptions: FilterValue[] = ["all", ...verticals];
+
 
   const visibleArticles =
     activeFilter === "all"
@@ -81,6 +90,21 @@ export function NewsAppShell({
     0,
     visibleArticles.findIndex((article) => article.slug === activeSlug),
   );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 980px)");
+
+    const syncViewport = () => {
+      setIsCompactReader(mediaQuery.matches);
+    };
+
+    syncViewport();
+    mediaQuery.addEventListener("change", syncViewport);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncViewport);
+    };
+  }, []);
 
   const syncUrl = (nextFilter: FilterValue, nextSlug: string) => {
     const nextParams = new URLSearchParams();
@@ -123,22 +147,33 @@ export function NewsAppShell({
   useEffect(() => {
     const container = containerRef.current;
 
-    if (!container) {
+    if (!container && !isCompactReader) {
       return;
     }
 
     const handleScroll = () => {
-      const nextActive =
-        visibleArticles.find((article, index) => {
-          const node = articleRefs.current[index];
+      const targetOffset = isCompactReader
+        ? 148
+        : (container?.getBoundingClientRect().top ?? 0) + 16;
 
-          if (!node) {
-            return false;
-          }
+      const nextActive = visibleArticles.reduce<{
+        article: AppArticle;
+        distance: number;
+      } | null>((closest, article, index) => {
+        const node = articleRefs.current[index];
 
-          const topOffset = Math.abs(node.offsetTop - container.scrollTop);
-          return topOffset < node.clientHeight * 0.45;
-        }) ?? visibleArticles[0];
+        if (!node) {
+          return closest;
+        }
+
+        const distance = Math.abs(node.getBoundingClientRect().top - targetOffset);
+
+        if (!closest || distance < closest.distance) {
+          return { article, distance };
+        }
+
+        return closest;
+      }, null)?.article ?? visibleArticles[0];
 
       if (nextActive && nextActive.slug !== activeSlug) {
         setReaderState((current) => ({ ...current, activeSlug: nextActive.slug }));
@@ -147,12 +182,21 @@ export function NewsAppShell({
     };
 
     handleScroll();
-    container.addEventListener("scroll", handleScroll, { passive: true });
+
+    if (isCompactReader) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    } else {
+      container?.addEventListener("scroll", handleScroll, { passive: true });
+    }
 
     return () => {
-      container.removeEventListener("scroll", handleScroll);
+      if (isCompactReader) {
+        window.removeEventListener("scroll", handleScroll);
+      } else {
+        container?.removeEventListener("scroll", handleScroll);
+      }
     };
-  }, [activeFilter, activeSlug, visibleArticles]);
+  }, [activeFilter, activeSlug, isCompactReader, visibleArticles]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -283,8 +327,60 @@ export function NewsAppShell({
         </div>
       </div>
 
-      <div className="app-toolbar">
-        <div className="filter-row">
+      <section className="reader-control-panel">
+        <div className="reader-control-header">
+          <div>
+            <p className="article-meta">Reader Controls</p>
+            <h2>{activeArticle?.title ?? "No article available"}</h2>
+            <p>{activeArticle?.lead ?? "Add approved stories to populate the app experience."}</p>
+          </div>
+          <div className="reader-meta">
+            <span>
+              {String(activeIndex + 1).padStart(2, "0")} /{" "}
+              {String(visibleArticles.length).padStart(2, "0")}
+            </span>
+            <span>{activeArticle ? getVerticalLabel(activeArticle.vertical) : "No articles"}</span>
+          </div>
+        </div>
+
+        <div className="reader-control-actions">
+          <button className="primary-link button-reset" type="button" onClick={jumpRandom}>
+            Randomize
+          </button>
+          <Link className="secondary-link" href={activeArticle ? `/articles/${activeArticle.slug}` : "/"}>
+            Open article
+          </Link>
+          <button
+            className="nav-button"
+            type="button"
+            onClick={() => {
+              const previousArticle = visibleArticles[activeIndex - 1];
+
+              if (previousArticle) {
+                scrollToArticle(previousArticle.slug);
+              }
+            }}
+            disabled={activeIndex <= 0}
+          >
+            Previous
+          </button>
+          <button
+            className="nav-button"
+            type="button"
+            onClick={() => {
+              const nextArticle = visibleArticles[activeIndex + 1];
+
+              if (nextArticle) {
+                scrollToArticle(nextArticle.slug);
+              }
+            }}
+            disabled={activeIndex >= visibleArticles.length - 1}
+          >
+            Next
+          </button>
+        </div>
+
+        <div className="reader-control-filters" role="group" aria-label="Article filters">
           {filterOptions.map((option) => {
             const label = option === "all" ? "All" : getVerticalLabel(option);
 
@@ -300,104 +396,53 @@ export function NewsAppShell({
             );
           })}
         </div>
-        <div className="reader-meta">
-          <span>
-            {String(activeIndex + 1).padStart(2, "0")} /{" "}
-            {String(visibleArticles.length).padStart(2, "0")}
-          </span>
-          <span>{activeArticle ? getVerticalLabel(activeArticle.vertical) : "No articles"}</span>
-        </div>
+      </section>
+
+      <div className="reader-feed" ref={containerRef}>
+        {visibleArticles.map((article, index) => (
+          <article
+            key={article.slug}
+            ref={(node) => {
+              articleRefs.current[index] = node;
+            }}
+            className={article.slug === activeArticle?.slug ? "app-card is-active" : "app-card"}
+          >
+            <div className="app-card-copy">
+              <p className="article-meta">
+                {getVerticalLabel(article.vertical)} • {article.dateLabel} •{" "}
+                {article.readingTime}
+              </p>
+              <h2>{article.title}</h2>
+              <p className="app-card-lead">{article.lead}</p>
+              <p>{article.previewText}</p>
+            </div>
+            <div className="app-card-footer">
+              <div className="tag-row">
+                {article.tags.map((tag) => (
+                  <span key={tag} className="tag-pill">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <div className="app-card-actions">
+                <Link className="primary-link" href={`/articles/${article.slug}`}>
+                  Read article
+                </Link>
+                <button
+                  className="secondary-link button-reset"
+                  type="button"
+                  onClick={jumpRandom}
+                >
+                  Surprise me
+                </button>
+              </div>
+            </div>
+            <p className="app-card-author">By {article.author}</p>
+          </article>
+        ))}
       </div>
 
-      <div className="reader-layout">
-        <aside className="reader-rail">
-          <p className="article-meta">Now reading</p>
-          <h2>{activeArticle?.title ?? "No article available"}</h2>
-          <p>{activeArticle?.lead ?? "Add approved stories to populate the app experience."}</p>
-          <div className="reader-rail-actions">
-            <button
-              className="nav-button"
-              type="button"
-              onClick={() => {
-                const previousArticle = visibleArticles[activeIndex - 1];
-
-                if (previousArticle) {
-                  scrollToArticle(previousArticle.slug);
-                }
-              }}
-              disabled={activeIndex <= 0}
-            >
-              Previous
-            </button>
-            <button
-              className="nav-button"
-              type="button"
-              onClick={() => {
-                const nextArticle = visibleArticles[activeIndex + 1];
-
-                if (nextArticle) {
-                  scrollToArticle(nextArticle.slug);
-                }
-              }}
-              disabled={activeIndex >= visibleArticles.length - 1}
-            >
-              Next
-            </button>
-          </div>
-          <div className="reader-progress-track" aria-hidden="true">
-            <span
-              className="reader-progress-fill"
-              style={{
-                transform: `scaleY(${visibleArticles.length ? (activeIndex + 1) / visibleArticles.length : 0})`,
-              }}
-            />
-          </div>
-        </aside>
-
-        <div className="scroll-deck" ref={containerRef}>
-          {visibleArticles.map((article, index) => (
-            <article
-              key={article.slug}
-              ref={(node) => {
-                articleRefs.current[index] = node;
-              }}
-              className={article.slug === activeArticle?.slug ? "app-card is-active" : "app-card"}
-            >
-              <div className="app-card-copy">
-                <p className="article-meta">
-                  {getVerticalLabel(article.vertical)} • {article.dateLabel} •{" "}
-                  {article.readingTime}
-                </p>
-                <h2>{article.title}</h2>
-                <p className="app-card-lead">{article.lead}</p>
-                <p>{article.previewText}</p>
-              </div>
-              <div className="app-card-footer">
-                <div className="tag-row">
-                  {article.tags.map((tag) => (
-                    <span key={tag} className="tag-pill">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <div className="app-card-actions">
-                  <Link className="primary-link" href={`/articles/${article.slug}`}>
-                    Read article
-                  </Link>
-                  <button
-                    className="secondary-link button-reset"
-                    type="button"
-                    onClick={jumpRandom}
-                  >
-                    Surprise me
-                  </button>
-                </div>
-              </div>
-              <p className="app-card-author">By {article.author}</p>
-            </article>
-          ))}
-        </div>
-      </div>
+      <SiteFooter compact />
     </section>
   );
 }

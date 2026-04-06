@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
-import { getVerticalLabel, verticals, type Vertical } from "@/lib/article-taxonomy";
-import {
-  getArticlesByVertical,
-} from "@/lib/articles";
+import { getVerticalLabel } from "@/lib/article-taxonomy";
+import { getAllVerticals, getArticlesByVertical } from "@/lib/articles";
 
 export function generateStaticParams() {
-  return verticals.map((vertical) => ({ vertical }));
+  return getAllVerticals().map((vertical) => ({ vertical }));
 }
 
 export default async function CategoryPage({
@@ -17,22 +15,33 @@ export default async function CategoryPage({
 }) {
   const { vertical } = await params;
 
-  if (!verticals.includes(vertical as Vertical)) {
+  const verticals = getAllVerticals();
+  if (!verticals.includes(vertical)) {
     notFound();
   }
 
-  const typedVertical = vertical as Vertical;
-  const articles = getArticlesByVertical(typedVertical);
+  const articles = getArticlesByVertical(vertical);
 
   return (
     <main className="page-shell">
-      <section className="section-block">
-        <div className="section-heading">
-          <div>
+      <section className="section-block section-block-lane">
+        <div className="lane-hero">
+          <div className="lane-hero-copy">
             <p className="eyebrow">Category Lane</p>
-            <h2>{getVerticalLabel(typedVertical)}</h2>
+            <h1>{getVerticalLabel(vertical)}</h1>
+            <p className="about-copy">
+              This lane isolates the latest approved coverage in one vertical so
+              readers can move quickly without switching mental context.
+            </p>
           </div>
-          <Link href={`/app?vertical=${typedVertical}`}>Open in app</Link>
+          <div className="lane-hero-actions">
+            <Link className="primary-link" href={`/app?vertical=${vertical}`}>
+              Open in app
+            </Link>
+            <Link className="secondary-link" href="/">
+              Back to edition
+            </Link>
+          </div>
         </div>
         {articles.length ? (
           <div className="story-grid">

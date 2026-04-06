@@ -96,3 +96,9 @@ export function getArticlesByVertical(vertical: Vertical) {
 export function getVerticalPreview(vertical: Vertical, limit = 2) {
   return getArticlesByVertical(vertical).slice(0, limit);
 }
+
+export function getAllVerticals() {
+  return Array.from(
+    new Set(getAllArticles().map((article) => article.vertical).filter(Boolean)),
+  ).sort();
+}
