@@ -1,7 +1,6 @@
 "use client";
 
 import { startTransition, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getVerticalLabel, verticals, type Vertical } from "@/lib/article-taxonomy";
 import type { Article } from "@/lib/articles";
@@ -238,6 +237,19 @@ export function NewsAppShell({
 
   return (
     <section className="app-shell">
+      <div className="app-topbar">
+        <Link className="app-topbar-link" href="/">
+          Back to news
+        </Link>
+        <div className="app-topbar-brand" aria-label="NewsBites reader app">
+          <span className="app-stage-emblem">NB</span>
+          <div className="app-stage-wordmark-copy">
+            <span>Reader App</span>
+            <strong>NewsBites</strong>
+          </div>
+        </div>
+      </div>
+
       <div className="app-stage">
         <div className="app-stage-copy">
           <p className="eyebrow">Reader App</p>
@@ -257,14 +269,13 @@ export function NewsAppShell({
           </div>
         </div>
         <div className="app-stage-brand">
-          <Image
-            src="/brand-assets/ProLogoWhite.png"
-            alt="NewsBites app mark"
-            width={220}
-            height={120}
-            className="app-stage-logo"
-            priority
-          />
+          <div className="app-stage-wordmark" aria-label="NewsBites">
+            <span className="app-stage-emblem">NB</span>
+            <div className="app-stage-wordmark-copy">
+              <span>TechInsiderBytes</span>
+              <strong>NewsBites</strong>
+            </div>
+          </div>
           <p>
             Scroll snaps, directional controls, and category jumps are all tied
             to the same live article set.

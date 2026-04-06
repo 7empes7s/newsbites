@@ -14,7 +14,7 @@ export default async function ReaderAppPage({
   const initialQuery = await searchParams;
 
   return (
-    <main className="page-shell">
+    <main className="page-shell app-page-shell">
       <NewsAppShell articles={articles} initialQuery={initialQuery} />
     </main>
   );
