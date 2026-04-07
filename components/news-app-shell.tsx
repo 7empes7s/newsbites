@@ -470,6 +470,9 @@ export function NewsAppShell({
                 </div>
               </div>
             </div>
+            <div className="nb-image-slot" aria-hidden="true">
+              <span className="nb-image-slot-label">Image</span>
+            </div>
             <div className="nb-card-footer">
               <Link className="nb-btn-read" href={`/articles/${activeArticle.slug}`}>
                 Read full article →
@@ -603,6 +606,9 @@ export function NewsAppShell({
                         <p className="nb-digest-text">{article.appDigest.takeaway}</p>
                       </div>
                     </div>
+                  </div>
+                  <div className="nb-image-slot nb-image-slot-flow" aria-hidden="true">
+                    <span className="nb-image-slot-label">Image</span>
                   </div>
                   <div className="nb-flow-card-footer">
                     <Link className="nb-btn-read nb-btn-read-flow" href={`/articles/${article.slug}`}>
