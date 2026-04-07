@@ -10,12 +10,11 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
   return (
     <footer className={compact ? "site-footer site-footer-compact" : "site-footer"}>
       <div className="site-footer-copy">
-        <p className="article-meta">TechInsiderBytes Network</p>
+        <p className="article-meta">TechInsiderBytes</p>
         <h2>Stay with the signal.</h2>
         <p>
-          NewsBites is the fast-reading surface. The wider TechInsiderBytes
-          stack will route briefings, updates, and direct distribution across
-          multiple channels.
+          NewsBites is where TechInsiderBytes publishes its daily briefings.
+          Follow for alerts and new drops.
         </p>
       </div>
 
