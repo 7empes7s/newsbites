@@ -322,6 +322,12 @@ export function NewsAppShell({
     <>
       {/* Compact control bar — always visible at top */}
       <div className="nb-toolbar">
+        <div className="nb-toolbar-brand">
+          <Link href="/" className="nb-toolbar-logo" aria-label="NewsBites home">
+            <span className="nb-toolbar-logo-emblem">NB</span>
+            <span className="nb-toolbar-logo-text">NewsBites</span>
+          </Link>
+        </div>
         <div className="nb-toolbar-row">
           <button
             className="nb-btn nb-btn-icon"
