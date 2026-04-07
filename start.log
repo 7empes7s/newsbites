@@ -1,0 +1,8 @@
+
+> newsbites@0.1.0 start
+> next start -p 3001
+
+▲ Next.js 16.2.2
+- Local:         http://localhost:3001
+- Network:       http://172.19.0.2:3001
+✓ Ready in 108ms

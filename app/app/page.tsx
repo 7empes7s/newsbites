@@ -6,6 +6,7 @@ export default async function ReaderAppPage({
 }: {
   searchParams: Promise<{
     article?: string;
+    mode?: string;
     random?: string;
     vertical?: string;
   }>;

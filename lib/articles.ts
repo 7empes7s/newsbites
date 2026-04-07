@@ -18,6 +18,15 @@ type Frontmatter = {
 };
 
 export type Article = Frontmatter & {
+  appDigest: {
+    headline: string;
+    nutshell: string;
+    sections: {
+      title: string;
+      summary: string;
+    }[];
+    takeaway: string;
+  };
   content: string;
   dateLabel: string;
   readingTime: string;
@@ -52,6 +61,117 @@ function getPreviewText(content: string, maxLength = 220) {
   return `${cleaned.slice(0, maxLength).trimEnd()}…`;
 }
 
+function getCleanParagraphs(content: string) {
+  return content
+    .split(/\n\s*\n/)
+    .map((paragraph) =>
+      paragraph
+        .replace(/^#{1,6}\s+/gm, "")
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/[*_`>-]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+    )
+    .filter(Boolean);
+}
+
+function normalizeInline(text: string) {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`>-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getDigestSentence(text: string, maxLength = 165) {
+  const sentence = text.match(/.+?[.!?](?=\s|$)/)?.[0]?.trim() ?? text.trim();
+
+  if (sentence.length <= maxLength) {
+    return sentence;
+  }
+
+  return `${sentence.slice(0, maxLength).trimEnd()}…`;
+}
+
+function getAppHeadline(title: string, maxLength = 82) {
+  const preferred =
+    title.split(/ -- |: |\| /)[0]?.trim() || title.trim();
+
+  if (preferred.length <= maxLength) {
+    return preferred;
+  }
+
+  return `${preferred.slice(0, maxLength).trimEnd()}…`;
+}
+
+function getDigestSections(content: string) {
+  const lines = content.split("\n");
+  const sections: { title: string; paragraphs: string[] }[] = [];
+  let current: { title: string; paragraphs: string[] } | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+
+    if (!line) {
+      continue;
+    }
+
+    if (line.startsWith("## ")) {
+      current = {
+        title: normalizeInline(line.replace(/^##\s+/, "")),
+        paragraphs: [],
+      };
+      sections.push(current);
+      continue;
+    }
+
+    if (!current) {
+      continue;
+    }
+
+    if (line.startsWith("- ")) {
+      current.paragraphs.push(normalizeInline(line.replace(/^- /, "")));
+      continue;
+    }
+
+    current.paragraphs.push(normalizeInline(line));
+  }
+
+  return sections
+    .map((section) => ({
+      title: section.title,
+      summary: getDigestSentence(section.paragraphs.join(" "), 135),
+    }))
+    .filter((section) => section.title && section.summary);
+}
+
+function getAppDigest(title: string, lead: string, content: string) {
+  const paragraphs = getCleanParagraphs(content);
+  const uniqueParagraphs = paragraphs.filter(
+    (paragraph) => paragraph.toLowerCase() !== lead.toLowerCase(),
+  );
+  const sections = getDigestSections(content);
+  const digestSections = sections.slice(0, 1);
+  const takeawaySource =
+    sections.at(-1)?.summary ??
+    [...uniqueParagraphs].reverse()[0] ??
+    lead;
+
+  return {
+    headline: getAppHeadline(title),
+    nutshell: getDigestSentence(lead, 180),
+    sections: digestSections.length
+      ? digestSections
+      : [
+          {
+            title: "Key point",
+            summary: getDigestSentence(uniqueParagraphs[0] ?? lead, 135),
+          },
+        ],
+    takeaway: getDigestSentence(takeawaySource, 145),
+  };
+}
+
 function readArticleFile(fileName: string): Article {
   const filePath = path.join(articlesDirectory, fileName);
   const fileContents = fs.readFileSync(filePath, "utf8");
@@ -60,6 +180,7 @@ function readArticleFile(fileName: string): Article {
 
   return {
     ...frontmatter,
+    appDigest: getAppDigest(frontmatter.title, frontmatter.lead, content),
     content,
     dateLabel: formatDate(frontmatter.date),
     readingTime: getReadingTime(content),
