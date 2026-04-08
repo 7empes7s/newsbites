@@ -406,58 +406,57 @@ export function NewsAppShell({
     <>
       {/* Compact control bar — always visible at top */}
       <div className="nb-toolbar">
-        <div className="nb-toolbar-brand">
-          <Link href="/" className="nb-toolbar-logo" aria-label="NewsBites home">
+        <div className="nb-toolbar-row">
+          <div className="nb-toolbar-controls nb-toolbar-controls-left">
+            <button
+              className="nb-btn nb-btn-icon"
+              type="button"
+              onClick={() => { if (previousArticle) setActiveArticle(previousArticle.slug); }}
+              disabled={activeIndex <= 0}
+              aria-label="Previous article"
+            >
+              ‹
+            </button>
+
+            <button
+              className="nb-btn nb-btn-icon"
+              type="button"
+              onClick={() => setSearchOpen((c) => !c)}
+              aria-label={searchOpen ? "Close search" : "Search articles"}
+            >
+              {searchOpen ? "✕" : "⌕"}
+            </button>
+
+            <button className="nb-btn nb-btn-text" type="button" onClick={jumpRandom} aria-label="Random article">
+              ⟳
+            </button>
+          </div>
+
+          <Link href="/" className="nb-toolbar-logo nb-toolbar-logo-inline" aria-label="NewsBites home">
             <span className="nb-toolbar-logo-emblem">NB</span>
             <span className="nb-toolbar-logo-text">NewsBites</span>
           </Link>
-        </div>
-        <div className="nb-toolbar-row">
-          <button
-            className="nb-btn nb-btn-icon"
-            type="button"
-            onClick={() => { if (previousArticle) setActiveArticle(previousArticle.slug); }}
-            disabled={activeIndex <= 0}
-            aria-label="Previous article"
-          >
-            ‹
-          </button>
 
-          <button
-            className="nb-btn nb-btn-icon"
-            type="button"
-            onClick={() => setSearchOpen((c) => !c)}
-            aria-label={searchOpen ? "Close search" : "Search articles"}
-          >
-            {searchOpen ? "✕" : "⌕"}
-          </button>
+          <div className="nb-toolbar-controls nb-toolbar-controls-right">
+            <button
+              className="nb-btn nb-btn-menu"
+              type="button"
+              onClick={() => { setMenuOpen((c) => !c); setSearchOpen(false); }}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
 
-          <button className="nb-btn nb-btn-text" type="button" onClick={jumpRandom}>
-            ⟳
-          </button>
-
-          <span className="nb-toolbar-counter">
-            {displayArticles.length > 0 ? `${activeIndex + 1} / ${displayArticles.length}` : "—"}
-          </span>
-
-          <button
-            className="nb-btn nb-btn-menu"
-            type="button"
-            onClick={() => { setMenuOpen((c) => !c); setSearchOpen(false); }}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            {menuOpen ? "✕" : "☰"}
-          </button>
-
-          <button
-            className="nb-btn nb-btn-icon"
-            type="button"
-            onClick={() => { if (nextArticleItem) setActiveArticle(nextArticleItem.slug); }}
-            disabled={activeIndex >= displayArticles.length - 1}
-            aria-label="Next article"
-          >
-            ›
-          </button>
+            <button
+              className="nb-btn nb-btn-icon"
+              type="button"
+              onClick={() => { if (nextArticleItem) setActiveArticle(nextArticleItem.slug); }}
+              disabled={activeIndex >= displayArticles.length - 1}
+              aria-label="Next article"
+            >
+              ›
+            </button>
+          </div>
         </div>
 
         {/* Search bar — slides open */}
