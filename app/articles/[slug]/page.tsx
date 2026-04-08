@@ -11,15 +11,31 @@ export function generateStaticParams() {
 
 export default async function ArticlePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{
+    article?: string;
+    from?: string;
+    mode?: string;
+    vertical?: string;
+  }>;
 }) {
   const { slug } = await params;
+  const query = await searchParams;
   const article = getArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
+
+  const appParams = new URLSearchParams();
+  appParams.set("article", query.article || article.slug);
+  if (query.mode === "flow") appParams.set("mode", "flow");
+  if (query.vertical && query.vertical !== "all") appParams.set("vertical", query.vertical);
+
+  const appHref = `/app?${appParams.toString()}`;
+  const isFromReaderApp = query.from === "app";
 
   return (
     <main className="page-shell">
@@ -50,8 +66,8 @@ export default async function ArticlePage({
           </div>
           <div className="sidebar-panel">
             <h2>Reader App</h2>
-            <Link className="lane-link" href={`/app?article=${article.slug}`}>
-              Open this story in the app
+            <Link className="lane-link" href={appHref}>
+              {isFromReaderApp ? "Back to where you left off" : "Open this story in the app"}
             </Link>
           </div>
         </aside>

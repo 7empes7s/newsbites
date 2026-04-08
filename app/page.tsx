@@ -85,7 +85,7 @@ export default function Home() {
           <p className="eyebrow">Two views</p>
           <h2>Skim here. Read deep in the app.</h2>
           <p className="lede">
-            The homepage shows you what's worth your time. The app lets you
+            The homepage shows you what is worth your time. The app lets you
             sit with it — one story at a time, no distractions.
           </p>
           <div className="headline-stack">
@@ -113,7 +113,7 @@ export default function Home() {
         <div className="headline-ribbon">
           <span>In the app</span>
           <p>
-            Jump between beats, hit "surprise me" for something random, or work
+            Jump between beats, hit the surprise button for something random, or work
             through a category from newest to oldest.
           </p>
         </div>
@@ -180,7 +180,7 @@ export default function Home() {
         <div className="cta-band">
           <p>
             NewsBites keeps a short list: stories worth reading, edited tightly,
-            published as they're ready. No infinite scroll, no engagement traps,
+            published as they are ready. No infinite scroll, no engagement traps,
             no 47 tabs.
           </p>
           <div className="hero-actions">

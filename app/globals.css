@@ -315,6 +315,10 @@ body.reader-app-mode .site-frame-app {
   height: 100svh;
 }
 
+html.nb-flow-lock {
+  overflow: hidden;
+}
+
 .hero-poster {
   position: relative;
   min-height: min(78svh, 780px);
@@ -2475,6 +2479,13 @@ body.reader-app-mode .site-frame-app {
   color: rgba(255, 246, 239, 0.5);
 }
 
+.nb-image-slot-filled {
+  border-style: solid;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 /* ── Card footer (Read full + Fav) ── */
 .nb-card-footer {
   flex-shrink: 0;
@@ -2558,6 +2569,9 @@ body.reader-app-mode .site-frame-app {
   top: 12px;
   right: 12px;
   z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .nb-flow-logo {
@@ -2604,6 +2618,22 @@ body.reader-app-mode .site-frame-app {
   margin-left: 4px;
   font-size: 0.9rem;
   opacity: 0.7;
+}
+
+.nb-flow-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(19, 35, 61, 0.88);
+  color: rgba(255, 246, 239, 0.72);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(10px);
 }
 
 /* ── Flow mode: overlay menu ── */
@@ -2848,6 +2878,7 @@ body.reader-app-mode .site-frame-app {
   .nb-flow-header {
     top: 8px;
     right: 8px;
+    gap: 6px;
   }
 
   .nb-flow-logo {
@@ -2863,6 +2894,12 @@ body.reader-app-mode .site-frame-app {
 
   .nb-flow-logo-text {
     font-size: 0.88rem;
+  }
+
+  .nb-flow-counter {
+    min-height: 28px;
+    padding: 5px 10px;
+    font-size: 0.66rem;
   }
 
   .nb-flow-menu-overlay {

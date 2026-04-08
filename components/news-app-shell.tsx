@@ -1,6 +1,12 @@
 "use client";
 
-import { startTransition, useEffect, useRef, useState, type TouchEvent } from "react";
+import {
+  startTransition,
+  useEffect,
+  useRef,
+  useState,
+  type TouchEvent,
+} from "react";
 import Link from "next/link";
 import { getVerticalLabel, type Vertical } from "@/lib/article-taxonomy";
 import type { Article } from "@/lib/articles";
@@ -9,6 +15,7 @@ type AppArticle = Pick<
   Article,
   | "author"
   | "appDigest"
+  | "coverImage"
   | "dateLabel"
   | "lead"
   | "readingTime"
@@ -27,6 +34,7 @@ type FlowEntry = {
 };
 
 const FAV_KEY = "newsbites-favorites";
+const EMPTY_FLOW_ENTRIES: FlowEntry[] = [];
 
 function isVertical(value: string | null, verticals: Vertical[]): value is Vertical {
   return Boolean(value && verticals.includes(value as Vertical));
@@ -34,6 +42,36 @@ function isVertical(value: string | null, verticals: Vertical[]): value is Verti
 
 function getInitialMode(value: string | null): ReaderMode {
   return value === "flow" ? "flow" : "focus";
+}
+
+function pickPseudoRandomIndex(length: number, seed: number) {
+  if (length <= 1) return 0;
+  const nextSeed = (seed * 1664525 + 1013904223) >>> 0;
+  return nextSeed % length;
+}
+
+function readInitialFavorites() {
+  if (typeof window === "undefined") {
+    return new Set<string>();
+  }
+
+  try {
+    const stored = localStorage.getItem(FAV_KEY);
+    if (!stored) return new Set<string>();
+    return new Set(JSON.parse(stored) as string[]);
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function replaceReaderUrl(nextFilter: FilterValue, nextSlug: string, nextMode: ReaderMode) {
+  if (typeof window === "undefined") return;
+  const p = new URLSearchParams();
+  if (nextFilter !== "all") p.set("vertical", nextFilter);
+  if (nextMode === "flow") p.set("mode", "flow");
+  if (nextSlug) p.set("article", nextSlug);
+  const q = p.toString();
+  window.history.replaceState(null, "", q ? `/app?${q}` : "/app");
 }
 
 function getOrderedArticles(articles: AppArticle[], startSlug: string) {
@@ -111,26 +149,21 @@ export function NewsAppShell({
     ),
   );
   const flowFeedRef = useRef<HTMLDivElement | null>(null);
-  const [flowEntries, setFlowEntries] = useState<FlowEntry[]>([]);
+  const [flowAnchorSlug, setFlowAnchorSlug] = useState(() => activeSlug || articles[0]?.slug || "");
+  const [flowCycleCount, setFlowCycleCount] = useState(3);
   const [flowIndex, setFlowIndex] = useState(0);
   const [isFlowAnimating, setIsFlowAnimating] = useState(false);
   const [flowViewportHeight, setFlowViewportHeight] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<Set<string>>(() => readInitialFavorites());
   const wheelLockRef = useRef(false);
   const touchStartYRef = useRef<number | null>(null);
+  const randomSeedRef = useRef(0x9e3779b9);
 
   const filterOptions: FilterValue[] = ["all", "favorites", ...verticals];
   const isFlowMode = mode === "flow";
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(FAV_KEY);
-      if (stored) setFavorites(new Set(JSON.parse(stored) as string[]));
-    } catch { /* ignore */ }
-  }, []);
 
   const toggleFavorite = (slug: string) => {
     setFavorites((prev) => {
@@ -158,23 +191,38 @@ export function NewsAppShell({
     : visibleArticles;
 
   const displayArticles = searchOpen && searchQuery.trim() ? searchedArticles : visibleArticles;
+  const trimmedSearchQuery = searchQuery.trim();
+  const hasSearchNoResults = Boolean(searchOpen && trimmedSearchQuery && searchedArticles.length === 0);
 
   const activeIndex = Math.max(0, displayArticles.findIndex((a) => a.slug === activeSlug));
 
-  const syncUrl = (nextFilter: FilterValue, nextSlug: string, nextMode: ReaderMode) => {
-    const p = new URLSearchParams();
-    if (nextFilter !== "all") p.set("vertical", nextFilter);
-    if (nextMode === "flow") p.set("mode", "flow");
-    if (nextSlug) p.set("article", nextSlug);
-    const q = p.toString();
-    window.history.replaceState(null, "", q ? `/app?${q}` : "/app");
+  const resetFlowState = (slug: string) => {
+    setFlowAnchorSlug(slug);
+    setFlowCycleCount(3);
+    setFlowIndex(0);
+    setIsFlowAnimating(false);
+    wheelLockRef.current = false;
   };
 
   const setActiveArticle = (slug: string, nextMode?: ReaderMode) => {
     const resolvedMode = nextMode ?? mode;
+    if (resolvedMode === "flow") {
+      resetFlowState(slug);
+    }
     setReaderState((c) => ({ ...c, activeSlug: slug, mode: resolvedMode }));
-    syncUrl(activeFilter, slug, resolvedMode);
+    replaceReaderUrl(activeFilter, slug, resolvedMode);
   };
+
+  const getReaderContextQuery = (slug: string) => {
+    const p = new URLSearchParams();
+    p.set("from", "app");
+    p.set("article", slug);
+    if (mode === "flow") p.set("mode", "flow");
+    if (activeFilter !== "all") p.set("vertical", activeFilter);
+    return p.toString();
+  };
+
+  const getArticleHref = (slug: string) => `/articles/${slug}?${getReaderContextQuery(slug)}`;
 
   const setFilter = (nextFilter: FilterValue) => {
     startTransition(() => {
@@ -186,12 +234,18 @@ export function NewsAppShell({
           : articles.filter((a) => a.vertical === nextFilter);
       const first = nextVisible[0];
       if (!first) {
-        syncUrl(nextFilter, "", mode);
+        replaceReaderUrl(nextFilter, "", mode);
         setReaderState({ activeFilter: nextFilter, activeSlug: "", mode });
+        if (mode === "flow") {
+          resetFlowState("");
+        }
         return;
       }
       setReaderState({ activeFilter: nextFilter, activeSlug: first.slug, mode });
-      syncUrl(nextFilter, first.slug, mode);
+      if (mode === "flow") {
+        resetFlowState(first.slug);
+      }
+      replaceReaderUrl(nextFilter, first.slug, mode);
     });
   };
 
@@ -199,7 +253,8 @@ export function NewsAppShell({
     if (!displayArticles.length) return;
     const candidates = displayArticles.filter((a) => a.slug !== activeSlug);
     const pool = candidates.length ? candidates : displayArticles;
-    const next = pool[Math.floor(Math.random() * pool.length)];
+    randomSeedRef.current = (randomSeedRef.current * 1664525 + 1013904223) >>> 0;
+    const next = pool[pickPseudoRandomIndex(pool.length, randomSeedRef.current)];
     if (next) setActiveArticle(next.slug);
   };
 
@@ -207,11 +262,25 @@ export function NewsAppShell({
   const previousArticle = displayArticles[activeIndex - 1];
   const nextArticleItem = displayArticles[activeIndex + 1];
 
+  const flowEntries =
+    !isFlowMode || !displayArticles.length || !flowAnchorSlug
+      ? []
+      : buildFlowEntries(displayArticles, flowAnchorSlug, 0, flowCycleCount);
+
+  const flowPosition = Math.min(flowIndex, Math.max(0, flowEntries.length - 1));
+
   const setMode = (nextMode: ReaderMode) => {
-    setReaderState((c) => ({ ...c, mode: nextMode }));
+    const nextSlug = activeArticle?.slug ?? "";
+    if (nextMode === "flow") {
+      resetFlowState(nextSlug);
+    } else {
+      setIsFlowAnimating(false);
+      wheelLockRef.current = false;
+    }
+    setReaderState((c) => ({ ...c, activeSlug: nextSlug || c.activeSlug, mode: nextMode }));
     setMenuOpen(false);
     setSearchOpen(false);
-    syncUrl(activeFilter, activeArticle?.slug ?? "", nextMode);
+    replaceReaderUrl(activeFilter, nextSlug, nextMode);
   };
 
   const isFav = (slug: string) => favorites.has(slug);
@@ -221,35 +290,6 @@ export function NewsAppShell({
     if (option === "favorites") return "♥ Favourites";
     return getVerticalLabel(option);
   };
-
-  // ── Flow mode logic ──
-  useEffect(() => {
-    if (!isFlowMode) {
-      setFlowEntries([]);
-      setFlowIndex(0);
-      return;
-    }
-    setFlowEntries(buildFlowEntries(displayArticles, activeSlug, 0, 3));
-    setFlowIndex(0);
-  }, [activeFilter, activeSlug, isFlowMode]);
-
-  useEffect(() => {
-    if (!isFlowMode || flowIndex < flowEntries.length - 2) return;
-    setFlowEntries((current) => {
-      const nextCycleStart = current.length
-        ? Math.ceil(current.length / displayArticles.length)
-        : 0;
-      return [...current, ...buildFlowEntries(displayArticles, activeSlug, nextCycleStart, 2)];
-    });
-  }, [flowIndex, isFlowMode]);
-
-  useEffect(() => {
-    if (!isFlowMode) return;
-    const nextEntry = flowEntries[flowIndex];
-    if (!nextEntry || nextEntry.article.slug === activeSlug) return;
-    setReaderState((c) => ({ ...c, activeSlug: nextEntry.article.slug }));
-    syncUrl(activeFilter, nextEntry.article.slug, "flow");
-  }, [flowIndex, isFlowMode]);
 
   useEffect(() => {
     if (!isFlowMode || !isFlowAnimating) return;
@@ -273,33 +313,57 @@ export function NewsAppShell({
   useEffect(() => {
     if (!isFlowMode || !appShellRef.current) return;
     const shellNode = appShellRef.current;
-    const prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
+    document.documentElement.classList.add("nb-flow-lock");
+    const orderedForWheel =
+      displayArticles.length && flowAnchorSlug
+        ? getOrderedArticles(displayArticles, flowAnchorSlug)
+        : EMPTY_FLOW_ENTRIES.map((entry) => entry.article);
+    const orderedLength = orderedForWheel.length;
+    const totalEntries = orderedLength * flowCycleCount;
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       if (wheelLockRef.current || isFlowAnimating) return;
       if (Math.abs(e.deltaY) < 12) return;
+      if (!orderedLength || totalEntries < 1) return;
       wheelLockRef.current = true;
-      moveFlow(e.deltaY > 0 ? 1 : -1);
+      const direction: 1 | -1 = e.deltaY > 0 ? 1 : -1;
+      const next = Math.max(0, Math.min(totalEntries - 1, flowPosition + direction));
+      if (next === flowPosition) {
+        wheelLockRef.current = false;
+        return;
+      }
+
+      if (direction === 1 && next >= totalEntries - 2 && orderedLength > 0) {
+        setFlowCycleCount((current) => current + 2);
+      }
+
+      const nextArticle = orderedForWheel[next % orderedLength];
+      if (!nextArticle) {
+        wheelLockRef.current = false;
+        return;
+      }
+
+      setReaderState((current) => ({ ...current, activeSlug: nextArticle.slug }));
+      replaceReaderUrl(activeFilter, nextArticle.slug, "flow");
+      setIsFlowAnimating(true);
+      setFlowIndex(next);
     };
 
     shellNode.addEventListener("wheel", onWheel, { passive: false });
     return () => {
       shellNode.removeEventListener("wheel", onWheel);
-      document.documentElement.style.overflow = prevOverflow;
+      document.documentElement.classList.remove("nb-flow-lock");
     };
-  }, [isFlowAnimating, isFlowMode, flowEntries.length]);
-
-  const moveFlow = (direction: 1 | -1) => {
-    if (!isFlowMode || isFlowAnimating || !flowEntries.length) return;
-    setFlowIndex((current) => {
-      const next = Math.max(0, Math.min(flowEntries.length - 1, current + direction));
-      if (next === current) { wheelLockRef.current = false; return current; }
-      setIsFlowAnimating(true);
-      return next;
-    });
-  };
+  }, [
+    activeFilter,
+    displayArticles,
+    flowAnchorSlug,
+    flowCycleCount,
+    flowPosition,
+    isFlowAnimating,
+    isFlowMode,
+  ]);
 
   const handleFlowTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     touchStartYRef.current = e.touches[0]?.clientY ?? null;
@@ -314,7 +378,27 @@ export function NewsAppShell({
     const deltaY = touchStartYRef.current - endY;
     touchStartYRef.current = null;
     if (Math.abs(deltaY) < 48) return;
-    moveFlow(deltaY > 0 ? 1 : -1);
+    const direction: 1 | -1 = deltaY > 0 ? 1 : -1;
+    const next = Math.max(0, Math.min(flowEntries.length - 1, flowPosition + direction));
+    if (next === flowPosition) {
+      wheelLockRef.current = false;
+      return;
+    }
+
+    if (direction === 1 && next >= flowEntries.length - 2 && displayArticles.length > 0) {
+      setFlowCycleCount((current) => current + 2);
+    }
+
+    const nextEntry = flowEntries[next];
+    if (!nextEntry) {
+      wheelLockRef.current = false;
+      return;
+    }
+
+    setReaderState((current) => ({ ...current, activeSlug: nextEntry.article.slug }));
+    replaceReaderUrl(activeFilter, nextEntry.article.slug, "flow");
+    setIsFlowAnimating(true);
+    setFlowIndex(next);
   };
 
   // ── Render: Focus Mode ──
@@ -444,7 +528,9 @@ export function NewsAppShell({
         {displayArticles.length === 0 ? (
           <div className="nb-empty">
             <p>
-              {activeFilter === "favorites"
+              {hasSearchNoResults
+                ? `No matches for "${trimmedSearchQuery}".`
+                : activeFilter === "favorites"
                 ? "No favourites yet — tap ♡ on any article to save it."
                 : "No articles in this category."}
             </p>
@@ -470,11 +556,19 @@ export function NewsAppShell({
                 </div>
               </div>
             </div>
-            <div className="nb-image-slot" aria-hidden="true">
-              <span className="nb-image-slot-label">Image</span>
-            </div>
+            {activeArticle.coverImage ? (
+              <div
+                className="nb-image-slot nb-image-slot-filled"
+                aria-hidden="true"
+                style={{ backgroundImage: `url("${activeArticle.coverImage}")` }}
+              />
+            ) : (
+              <div className="nb-image-slot" aria-hidden="true">
+                <span className="nb-image-slot-label">Image</span>
+              </div>
+            )}
             <div className="nb-card-footer">
-              <Link className="nb-btn-read" href={`/articles/${activeArticle.slug}`}>
+              <Link className="nb-btn-read" href={getArticleHref(activeArticle.slug)}>
                 Read full article →
               </Link>
               <button
@@ -507,6 +601,9 @@ export function NewsAppShell({
           <span className="nb-flow-logo-text">NewsBites</span>
           <span className="nb-flow-logo-menu">{menuOpen ? "✕" : "☰"}</span>
         </button>
+        <span className="nb-flow-counter" aria-live="polite">
+          {displayArticles.length > 0 ? `${activeIndex + 1} / ${displayArticles.length}` : "—"}
+        </span>
       </div>
 
       {/* Flow overlay menu — same expanded panel as focus mode */}
@@ -571,7 +668,9 @@ export function NewsAppShell({
         {displayArticles.length === 0 ? (
           <div className="nb-empty nb-empty-flow">
             <p>
-              {activeFilter === "favorites"
+              {hasSearchNoResults
+                ? `No matches for "${trimmedSearchQuery}".`
+                : activeFilter === "favorites"
                 ? "No favourites yet — tap ♡ on any article to save it."
                 : "No articles in this category."}
             </p>
@@ -579,7 +678,7 @@ export function NewsAppShell({
         ) : (
           <div
             className={isFlowAnimating ? "nb-flow-track nb-flow-animating" : "nb-flow-track"}
-            style={{ transform: `translate3d(0, -${flowIndex * flowViewportHeight}px, 0)` }}
+            style={{ transform: `translate3d(0, -${flowPosition * flowViewportHeight}px, 0)` }}
           >
             {flowEntries.map(({ article, key }) => (
               <div
@@ -607,11 +706,19 @@ export function NewsAppShell({
                       </div>
                     </div>
                   </div>
-                  <div className="nb-image-slot nb-image-slot-flow" aria-hidden="true">
-                    <span className="nb-image-slot-label">Image</span>
-                  </div>
+                  {article.coverImage ? (
+                    <div
+                      className="nb-image-slot nb-image-slot-flow nb-image-slot-filled"
+                      aria-hidden="true"
+                      style={{ backgroundImage: `url("${article.coverImage}")` }}
+                    />
+                  ) : (
+                    <div className="nb-image-slot nb-image-slot-flow" aria-hidden="true">
+                      <span className="nb-image-slot-label">Image</span>
+                    </div>
+                  )}
                   <div className="nb-flow-card-footer">
-                    <Link className="nb-btn-read nb-btn-read-flow" href={`/articles/${article.slug}`}>
+                    <Link className="nb-btn-read nb-btn-read-flow" href={getArticleHref(article.slug)}>
                       Read full article →
                     </Link>
                     <button
