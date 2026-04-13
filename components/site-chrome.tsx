@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getVerticalLabel } from "@/lib/article-taxonomy";
+import { getGroupLabel, type Group } from "@/lib/article-taxonomy";
 import { SiteFooter } from "@/components/site-footer";
 
 export function SiteChrome({
   children,
-  verticals = [],
+  groups = [],
 }: {
   children: React.ReactNode;
-  verticals?: string[];
+  groups?: Group[];
 }) {
   const pathname = usePathname();
   const isReaderApp = pathname === "/app";
@@ -42,9 +42,10 @@ export function SiteChrome({
               <Link href="/">News</Link>
               <Link href="/#edition">Edition</Link>
               <Link href="/app">App</Link>
-              {verticals.map((vertical) => (
-                <Link key={vertical} href={`/category/${vertical}`}>
-                  {getVerticalLabel(vertical)}
+              <Link href="/finance">Finance</Link>
+              {groups.map((group) => (
+                <Link key={group} href={`/group/${group}`}>
+                  {getGroupLabel(group)}
                 </Link>
               ))}
               <Link href="/about">About</Link>
@@ -54,13 +55,16 @@ export function SiteChrome({
             <Link className="mobile-nav-pill mobile-nav-pill-accent" href="/app">
               Open app
             </Link>
-            {verticals.map((vertical) => (
+            <Link className="mobile-nav-pill" href="/finance">
+              Finance
+            </Link>
+            {groups.map((group) => (
               <Link
-                key={vertical}
+                key={group}
                 className="mobile-nav-pill"
-                href={`/category/${vertical}`}
+                href={`/group/${group}`}
               >
-                {getVerticalLabel(vertical)}
+                {getGroupLabel(group)}
               </Link>
             ))}
           </nav>

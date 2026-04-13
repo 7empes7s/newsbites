@@ -1,0 +1,153 @@
+import React from 'react';
+import fs from 'fs';
+import path from 'path';
+import { InsightCard, type InsightProps } from '@/components/finance/InsightCard';
+
+interface InsightFile {
+  id: string;
+  title: string;
+  summary: string;
+  sourceArticleSlugs: string[];
+  confidence: 'high' | 'medium' | 'low';
+  timestamp: string;
+  status: string;
+  ticker?: string;
+  signal?: 'buy' | 'hold' | 'sell' | 'neutral';
+  timeframe?: 'short' | 'medium' | 'long';
+  expectedGain?: string;
+  expectedLoss?: string;
+  keyRisk?: string;
+  rationale?: string;
+  disclaimer?: string;
+}
+
+const MOCK_INSIGHTS: InsightProps[] = [
+  {
+    title: "Bitcoin Rallies Amid Institutional ETF Interest",
+    summary: "Bitcoin prices have shown significant upward momentum as new ETF inflows suggest growing institutional adoption of digital assets.",
+    confidence: "high",
+    sources: [],
+    timestamp: new Date().toISOString(),
+    ticker: "BTC-USD",
+    signal: "hold",
+    timeframe: "medium",
+    expectedGain: "+8-15%",
+    expectedLoss: "-12-20%",
+    keyRisk: "Regulatory uncertainty remains high in key markets.",
+  },
+  {
+    title: "Euro Weakness Driven by Diverging Central Bank Policies",
+    summary: "The EUR/USD pair continues to face pressure as market participants anticipate different interest rate trajectories between the ECB and the Fed.",
+    confidence: "medium",
+    sources: [],
+    timestamp: new Date().toISOString(),
+    ticker: "EURUSD=X",
+    signal: "sell",
+    timeframe: "short",
+    expectedGain: "+1-2%",
+    expectedLoss: "-3-5%",
+    keyRisk: "ECB could pivot faster than markets expect.",
+  },
+  {
+    title: "Gold Prices Stabilize Near Support Levels",
+    summary: "Gold prices have found footing near key support levels after a period of volatility triggered by shifting inflation expectations.",
+    confidence: "low",
+    sources: [],
+    timestamp: new Date().toISOString(),
+    ticker: "GC=F",
+    signal: "neutral",
+    timeframe: "long",
+    expectedGain: "+3-6%",
+    expectedLoss: "-5-8%",
+    keyRisk: "Rising real yields could pressure gold further.",
+  },
+];
+
+function loadInsights(): { insights: InsightProps[]; fromDisk: boolean } {
+  const dir = path.join(process.cwd(), 'content/finance-insights');
+
+  if (!fs.existsSync(dir)) {
+    return { insights: MOCK_INSIGHTS, fromDisk: false };
+  }
+
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+  if (files.length === 0) {
+    return { insights: MOCK_INSIGHTS, fromDisk: false };
+  }
+
+  const parsed: InsightProps[] = files
+    .flatMap(f => {
+      try {
+        const raw: InsightFile = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+        if (raw.status !== 'published') return [];
+        const confidence = ['high', 'medium', 'low'].includes(raw.confidence)
+          ? raw.confidence as 'high' | 'medium' | 'low'
+          : 'medium' as const;
+        const signal = raw.signal && ['buy', 'hold', 'sell', 'neutral'].includes(raw.signal)
+          ? raw.signal as 'buy' | 'hold' | 'sell' | 'neutral'
+          : undefined;
+        const timeframe = raw.timeframe && ['short', 'medium', 'long'].includes(raw.timeframe)
+          ? raw.timeframe as 'short' | 'medium' | 'long'
+          : undefined;
+        const item: InsightProps = {
+          title: raw.title,
+          summary: raw.summary,
+          confidence,
+          sources: raw.sourceArticleSlugs ?? [],
+          timestamp: raw.timestamp,
+          ticker: raw.ticker,
+          signal,
+          timeframe,
+          expectedGain: raw.expectedGain,
+          expectedLoss: raw.expectedLoss,
+          keyRisk: raw.keyRisk,
+          rationale: raw.rationale,
+          disclaimer: raw.disclaimer,
+        };
+        return [item];
+      } catch {
+        return [];
+      }
+    })
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+    .slice(0, 12);
+
+  if (parsed.length === 0) {
+    return { insights: MOCK_INSIGHTS, fromDisk: false };
+  }
+
+  return { insights: parsed, fromDisk: true };
+}
+
+export default function InsightsPage() {
+  const { insights, fromDisk } = loadInsights();
+
+  return (
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-3xl font-bold font-playfair text-[#1B2A4A]">Daily Market Insights</h1>
+        <p className="text-slate-600 mt-1">
+          AI-synthesized analysis of recent financial news and market movements.
+          <span className="ml-2 text-xs text-slate-400">Not financial advice.</span>
+        </p>
+      </header>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {insights.map((insight, index) => (
+          <InsightCard key={index} insight={insight} />
+        ))}
+      </div>
+
+      <section className="mt-12 p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+        <p className="text-slate-500 text-sm">
+          {fromDisk
+            ? `Insights generated by the Finance Analyst · refreshed nightly at 02:00 UTC`
+            : `Insights are generated nightly by the Finance Analyst agent. Check back tomorrow for the latest analysis.`}
+        </p>
+        <p className="text-xs text-slate-400 mt-2">
+          All signals are AI-generated for informational purposes only and do not constitute financial advice.
+        </p>
+      </section>
+    </div>
+  );
+}
