@@ -1,7 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
-import { type Vertical } from "@/lib/article-taxonomy";
+import {
+  GROUP_ORDER,
+  getGroupForVertical,
+  type Group,
+  type Vertical,
+} from "@/lib/article-taxonomy";
 
 const articlesDirectory = path.join(process.cwd(), "content/articles");
 
@@ -13,6 +18,7 @@ type Frontmatter = {
   tags: string[];
   status: "draft" | "approved" | "published";
   lead: string;
+  digest?: string;
   coverImage?: string;
   author: string;
 };
@@ -33,12 +39,12 @@ export type Article = Frontmatter & {
   previewText: string;
 };
 
-function getReadingTime(content: string) {
+function getReadingTime(content: string): string {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.round(words / 220))} min read`;
 }
 
-function formatDate(date: string) {
+function formatDate(date: string): string {
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
@@ -83,25 +89,12 @@ function normalizeInline(text: string) {
     .trim();
 }
 
-function getDigestSentence(text: string, maxLength = 165) {
-  const sentence = text.match(/.+?[.!?](?=\s|$)/)?.[0]?.trim() ?? text.trim();
-
-  if (sentence.length <= maxLength) {
-    return sentence;
-  }
-
-  return `${sentence.slice(0, maxLength).trimEnd()}…`;
+function getDigestSentence(text: string) {
+  return text.match(/.+?[.!?](?=\s|$)/)?.[0]?.trim() ?? text.trim();
 }
 
-function getAppHeadline(title: string, maxLength = 82) {
-  const preferred =
-    title.split(/ -- |: |\| /)[0]?.trim() || title.trim();
-
-  if (preferred.length <= maxLength) {
-    return preferred;
-  }
-
-  return `${preferred.slice(0, maxLength).trimEnd()}…`;
+function getAppHeadline(title: string) {
+  return title.split(/ -- |: |\| /)[0]?.trim() || title.trim();
 }
 
 function getDigestSections(content: string) {
@@ -140,12 +133,12 @@ function getDigestSections(content: string) {
   return sections
     .map((section) => ({
       title: section.title,
-      summary: getDigestSentence(section.paragraphs.join(" "), 135),
+      summary: getDigestSentence(section.paragraphs.join(" ")),
     }))
     .filter((section) => section.title && section.summary);
 }
 
-function getAppDigest(title: string, lead: string, content: string) {
+function getAppDigest(title: string, lead: string, content: string, digest?: string) {
   const paragraphs = getCleanParagraphs(content);
   const uniqueParagraphs = paragraphs.filter(
     (paragraph) => paragraph.toLowerCase() !== lead.toLowerCase(),
@@ -159,16 +152,16 @@ function getAppDigest(title: string, lead: string, content: string) {
 
   return {
     headline: getAppHeadline(title),
-    nutshell: getDigestSentence(lead, 180),
+    nutshell: digest ?? getDigestSentence(lead),
     sections: digestSections.length
       ? digestSections
       : [
           {
             title: "Key point",
-            summary: getDigestSentence(uniqueParagraphs[0] ?? lead, 135),
+            summary: getDigestSentence(uniqueParagraphs[0] ?? lead),
           },
         ],
-    takeaway: getDigestSentence(takeawaySource, 145),
+    takeaway: getDigestSentence(takeawaySource),
   };
 }
 
@@ -180,7 +173,7 @@ function readArticleFile(fileName: string): Article {
 
   return {
     ...frontmatter,
-    appDigest: getAppDigest(frontmatter.title, frontmatter.lead, content),
+    appDigest: getAppDigest(frontmatter.title, frontmatter.lead, content, frontmatter.digest),
     content,
     dateLabel: formatDate(frontmatter.date),
     readingTime: getReadingTime(content),
@@ -222,4 +215,35 @@ export function getAllVerticals() {
   return Array.from(
     new Set(getAllArticles().map((article) => article.vertical).filter(Boolean)),
   ).sort();
+}
+
+export function getAllGroups(): Group[] {
+  const present = new Set<Group>();
+  for (const article of getAllArticles()) {
+    const group = getGroupForVertical(article.vertical);
+    if (group) {
+      present.add(group);
+    }
+  }
+  return GROUP_ORDER.filter((group) => present.has(group));
+}
+
+export function getArticlesByGroup(group: Group) {
+  return getAllArticles().filter(
+    (article) => getGroupForVertical(article.vertical) === group,
+  );
+}
+
+export function getGroupPreview(group: Group, limit = 2) {
+  return getArticlesByGroup(group).slice(0, limit);
+}
+
+export function getVerticalsInGroup(group: Group): Vertical[] {
+  const seen = new Set<Vertical>();
+  for (const article of getAllArticles()) {
+    if (getGroupForVertical(article.vertical) === group) {
+      seen.add(article.vertical);
+    }
+  }
+  return Array.from(seen).sort();
 }
