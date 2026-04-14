@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleCard } from "@/components/article-card";
-import { getVerticalLabel } from "@/lib/article-taxonomy";
+import {
+  getGroupForVertical,
+  getGroupLabel,
+  getVerticalLabel,
+} from "@/lib/article-taxonomy";
 import { getAllVerticals, getArticlesByVertical } from "@/lib/articles";
 
 export function generateStaticParams() {
@@ -21,6 +25,7 @@ export default async function CategoryPage({
   }
 
   const articles = getArticlesByVertical(vertical);
+  const parentGroup = getGroupForVertical(vertical);
 
   return (
     <main className="page-shell">
@@ -29,13 +34,20 @@ export default async function CategoryPage({
           <div className="lane-hero-copy">
             <p className="eyebrow">Category Lane</p>
             <h1>{getVerticalLabel(vertical)}</h1>
+            {parentGroup ? (
+              <p className="article-meta">
+                <Link href={`/group/${parentGroup}`}>
+                  ← Back to {getGroupLabel(parentGroup)}
+                </Link>
+              </p>
+            ) : null}
             <p className="about-copy">
               This lane isolates the latest approved coverage in one vertical so
               readers can move quickly without switching mental context.
             </p>
           </div>
           <div className="lane-hero-actions">
-            <Link className="primary-link" href={`/app?vertical=${vertical}`}>
+            <Link className="primary-link" href={`/app`}>
               Open in app
             </Link>
             <Link className="secondary-link" href="/">

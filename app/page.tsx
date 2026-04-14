@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/article-card";
-import { getVerticalLabel } from "@/lib/article-taxonomy";
+import { getGroupLabel, getVerticalLabel } from "@/lib/article-taxonomy";
 import {
-  getAllVerticals,
+  getAllGroups,
   getFeaturedArticle,
+  getGroupPreview,
   getLatestArticles,
-  getVerticalPreview,
 } from "@/lib/articles";
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
   const latestStories = getLatestArticles(4).filter(
     (article) => article.slug !== featured?.slug,
   );
-  const verticals = getAllVerticals();
+  const groups = getAllGroups();
 
   return (
     <main className="page-shell">
@@ -23,8 +23,8 @@ export default function Home() {
           <p className="hero-brand">NewsBites</p>
           <h1>Big stories, stripped to the signal.</h1>
           <p className="lede">
-            News that respects your time. Four beats — AI, finance, politics,
-            trends — edited down to what actually matters.
+            News that respects your time. Core beats, new lanes, and only the
+            stories that clear the editorial bar.
           </p>
           <div className="hero-actions">
             <Link className="primary-link" href="/app">
@@ -41,19 +41,19 @@ export default function Home() {
             <p className="story-kicker">Live now</p>
             <p className="hero-edition-date">April 2026</p>
             <p className="hero-edition-copy">
-              Five stories live. New briefings drop through the week as the
-              editorial cycle runs.
+              Fresh briefings move live as they clear research, verification,
+              and approval.
             </p>
           </div>
 
           <div className="chip-row">
-            {verticals.map((vertical) => (
+            {groups.map((group) => (
               <Link
-                key={vertical}
+                key={group}
                 className="chip chip-ghost"
-                href={`/category/${vertical}`}
+                href={`/group/${group}`}
               >
-                {getVerticalLabel(vertical)}
+                {getGroupLabel(group)}
               </Link>
             ))}
           </div>
@@ -91,7 +91,7 @@ export default function Home() {
           <div className="headline-stack">
             <div>
               <p className="article-meta">Here</p>
-              <p className="headline-stack-copy">Lead story, all four beats, latest in one scan.</p>
+              <p className="headline-stack-copy">Lead story, every active lane, latest in one scan.</p>
             </div>
             <div>
               <p className="article-meta">App</p>
@@ -132,21 +132,21 @@ export default function Home() {
         <div className="section-heading">
           <h2>Category Radar</h2>
           <span className="section-note">
-            Four beats. One story per lane to start.
+            Active lanes update from the editorial feed.
           </span>
         </div>
         <div className="vertical-grid">
-          {verticals.map((vertical) => {
-            const preview = getVerticalPreview(vertical, 2);
+          {groups.map((group) => {
+            const preview = getGroupPreview(group, 2);
 
             return (
-              <section key={vertical} className="vertical-lane">
+              <section key={group} className="vertical-lane">
                 <div className="lane-header">
                   <div>
                     <p className="article-meta">Beat</p>
-                    <h3>{getVerticalLabel(vertical)}</h3>
+                    <h3>{getGroupLabel(group)}</h3>
                   </div>
-                  <Link className="lane-link" href={`/category/${vertical}`}>
+                  <Link className="lane-link" href={`/group/${group}`}>
                     All stories
                   </Link>
                 </div>

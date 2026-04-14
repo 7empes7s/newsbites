@@ -7,6 +7,7 @@ import {
   type Group,
   type Vertical,
 } from "@/lib/article-taxonomy";
+import type { PanelHints } from "@/lib/panels/types";
 
 const articlesDirectory = path.join(process.cwd(), "content/articles");
 
@@ -21,6 +22,7 @@ type Frontmatter = {
   digest?: string;
   coverImage?: string;
   author: string;
+  panel_hints?: PanelHints;
 };
 
 export type Article = Frontmatter & {

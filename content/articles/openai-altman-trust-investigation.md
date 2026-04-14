@@ -11,6 +11,7 @@ tags:
   - "policy"
 status: "published"
 lead: "An 18-month New Yorker investigation by Ronan Farrow and Andrew Marantz lands the same day Altman publishes a 13-page blueprint for AI-era governance."
+digest: "An 18-month New Yorker investigation by Ronan Farrow and Andrew Marantz — drawing on 100+ interviews and never-before-disclosed documents — lands the same day Altman releases a 13-page policy paper proposing a Public Wealth Fund, 32-hour workweeks, and auto-triggering safety nets. The investigation reportedly found Altman lobbied against regulations he publicly supported and pursued Gulf billions."
 coverImage: ""
 author: "NewsBites Desk"
 ---

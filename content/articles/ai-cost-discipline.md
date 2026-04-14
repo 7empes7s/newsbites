@@ -9,6 +9,7 @@ tags:
   - "ops"
 status: "approved"
 lead: "The fastest way to kill an AI product is to optimize capability before proving a cheap, repeatable workflow."
+digest: "Most AI products don't fail because the model is weak — they fail because the workflow around it is noisy, expensive, or impossible to verify. The teams that survive treat cost discipline as a product feature, not an engineering afterthought: cheap defaults, operator control separated from generation, and earned autonomy where every automated step must prove itself before it scales."
 coverImage: ""
 author: "NewsBites Desk"
 ---

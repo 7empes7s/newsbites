@@ -8,7 +8,13 @@ import {
   type TouchEvent,
 } from "react";
 import Link from "next/link";
-import { getVerticalLabel, type Vertical } from "@/lib/article-taxonomy";
+import {
+  getGroupForVertical,
+  getGroupLabel,
+  getVerticalLabel,
+  isGroup,
+  type Group,
+} from "@/lib/article-taxonomy";
 import type { Article } from "@/lib/articles";
 
 type AppArticle = Pick<
@@ -25,7 +31,7 @@ type AppArticle = Pick<
   | "vertical"
 >;
 
-type FilterValue = Vertical | "all" | "favorites";
+type FilterValue = Group | "all" | "favorites";
 type ReaderMode = "focus" | "flow";
 type FlowEntry = {
   article: AppArticle;
@@ -36,8 +42,8 @@ type FlowEntry = {
 const FAV_KEY = "newsbites-favorites";
 const EMPTY_FLOW_ENTRIES: FlowEntry[] = [];
 
-function isVertical(value: string | null, verticals: Vertical[]): value is Vertical {
-  return Boolean(value && verticals.includes(value as Vertical));
+function isActiveGroup(value: string | null, groups: Group[]): value is Group {
+  return Boolean(value && isGroup(value) && groups.includes(value));
 }
 
 function getInitialMode(value: string | null): ReaderMode {
@@ -67,7 +73,7 @@ function readInitialFavorites() {
 function replaceReaderUrl(nextFilter: FilterValue, nextSlug: string, nextMode: ReaderMode) {
   if (typeof window === "undefined") return;
   const p = new URLSearchParams();
-  if (nextFilter !== "all") p.set("vertical", nextFilter);
+  if (nextFilter !== "all") p.set("group", nextFilter);
   if (nextMode === "flow") p.set("mode", "flow");
   if (nextSlug) p.set("article", nextSlug);
   const q = p.toString();
@@ -99,22 +105,22 @@ function buildFlowEntries(
 
 function getInitialState(
   articles: AppArticle[],
-  queryVertical: string | null,
+  queryGroup: string | null,
   queryArticle: string | null,
   queryMode: string | null,
   wantsRandom: boolean,
-  verticals: Vertical[],
+  groups: Group[],
 ) {
-  const nextFilter: FilterValue = isVertical(queryVertical, verticals)
-    ? queryVertical
-    : queryVertical === "favorites"
+  const nextFilter: FilterValue = isActiveGroup(queryGroup, groups)
+    ? queryGroup
+    : queryGroup === "favorites"
     ? "favorites"
     : "all";
 
   const nextVisible =
     nextFilter === "all" || nextFilter === "favorites"
       ? articles
-      : articles.filter((a) => a.vertical === nextFilter);
+      : articles.filter((a) => getGroupForVertical(a.vertical) === nextFilter);
 
   const nextArticle =
     nextVisible.find((a) => a.slug === queryArticle) ??
@@ -131,21 +137,21 @@ function getInitialState(
 export function NewsAppShell({
   articles,
   initialQuery,
-  verticals,
+  groups,
 }: {
   articles: AppArticle[];
-  initialQuery: { article?: string; mode?: string; random?: string; vertical?: string };
-  verticals: Vertical[];
+  initialQuery: { article?: string; mode?: string; random?: string; group?: string };
+  groups: Group[];
 }) {
   const appShellRef = useRef<HTMLElement | null>(null);
   const [{ activeFilter, activeSlug, mode }, setReaderState] = useState(() =>
     getInitialState(
       articles,
-      initialQuery.vertical ?? null,
+      initialQuery.group ?? null,
       initialQuery.article ?? null,
       initialQuery.mode ?? null,
       initialQuery.random === "1",
-      verticals,
+      groups,
     ),
   );
   const flowFeedRef = useRef<HTMLDivElement | null>(null);
@@ -162,7 +168,7 @@ export function NewsAppShell({
   const touchStartYRef = useRef<number | null>(null);
   const randomSeedRef = useRef(0x9e3779b9);
 
-  const filterOptions: FilterValue[] = ["all", "favorites", ...verticals];
+  const filterOptions: FilterValue[] = ["all", "favorites", ...groups];
   const isFlowMode = mode === "flow";
 
   const toggleFavorite = (slug: string) => {
@@ -180,7 +186,7 @@ export function NewsAppShell({
       ? articles
       : activeFilter === "favorites"
       ? articles.filter((a) => favorites.has(a.slug))
-      : articles.filter((a) => a.vertical === activeFilter);
+      : articles.filter((a) => getGroupForVertical(a.vertical) === activeFilter);
 
   const searchedArticles = searchQuery.trim()
     ? visibleArticles.filter((a) =>
@@ -218,7 +224,7 @@ export function NewsAppShell({
     p.set("from", "app");
     p.set("article", slug);
     if (mode === "flow") p.set("mode", "flow");
-    if (activeFilter !== "all") p.set("vertical", activeFilter);
+    if (activeFilter !== "all") p.set("group", activeFilter);
     return p.toString();
   };
 
@@ -231,7 +237,7 @@ export function NewsAppShell({
           ? articles
           : nextFilter === "favorites"
           ? articles.filter((a) => favorites.has(a.slug))
-          : articles.filter((a) => a.vertical === nextFilter);
+          : articles.filter((a) => getGroupForVertical(a.vertical) === nextFilter);
       const first = nextVisible[0];
       if (!first) {
         replaceReaderUrl(nextFilter, "", mode);
@@ -288,7 +294,7 @@ export function NewsAppShell({
   const filterLabel = (option: FilterValue) => {
     if (option === "all") return "All";
     if (option === "favorites") return "♥ Favourites";
-    return getVerticalLabel(option);
+    return getGroupLabel(option);
   };
 
   useEffect(() => {
@@ -561,11 +567,7 @@ export function NewsAppShell({
                 aria-hidden="true"
                 style={{ backgroundImage: `url("${activeArticle.coverImage}")` }}
               />
-            ) : (
-              <div className="nb-image-slot" aria-hidden="true">
-                <span className="nb-image-slot-label">Image</span>
-              </div>
-            )}
+            ) : null}
             <div className="nb-card-footer">
               <Link className="nb-btn-read" href={getArticleHref(activeArticle.slug)}>
                 Read full article →
@@ -705,17 +707,6 @@ export function NewsAppShell({
                       </div>
                     </div>
                   </div>
-                  {article.coverImage ? (
-                    <div
-                      className="nb-image-slot nb-image-slot-flow nb-image-slot-filled"
-                      aria-hidden="true"
-                      style={{ backgroundImage: `url("${article.coverImage}")` }}
-                    />
-                  ) : (
-                    <div className="nb-image-slot nb-image-slot-flow" aria-hidden="true">
-                      <span className="nb-image-slot-label">Image</span>
-                    </div>
-                  )}
                   <div className="nb-flow-card-footer">
                     <Link className="nb-btn-read nb-btn-read-flow" href={getArticleHref(article.slug)}>
                       Read full article →

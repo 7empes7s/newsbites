@@ -1,5 +1,5 @@
 import { NewsAppShell } from "@/components/news-app-shell";
-import { getAllArticles, getAllVerticals } from "@/lib/articles";
+import { getAllArticles, getAllGroups } from "@/lib/articles";
 
 export default async function ReaderAppPage({
   searchParams,
@@ -8,11 +8,11 @@ export default async function ReaderAppPage({
     article?: string;
     mode?: string;
     random?: string;
-    vertical?: string;
+    group?: string;
   }>;
 }) {
   const articles = getAllArticles();
-  const verticals = getAllVerticals();
+  const groups = getAllGroups();
   const initialQuery = await searchParams;
 
   return (
@@ -20,7 +20,7 @@ export default async function ReaderAppPage({
       <NewsAppShell
         articles={articles}
         initialQuery={initialQuery}
-        verticals={verticals}
+        groups={groups}
       />
     </main>
   );

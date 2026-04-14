@@ -10,8 +10,8 @@ export default function AboutPage() {
           <p className="about-copy">
             NewsBites is the first editorial product in the TechInsiderBytes
             stack. The format is intentionally narrow: strong headlines, fast
-            summaries, and clear category lanes for AI, finance, global
-            politics, and trends.
+            summaries, and clear category lanes that can expand as the newsroom
+            adds new beats.
           </p>
           <p className="about-copy">
             The homepage remains the direct news surface. The dedicated app adds

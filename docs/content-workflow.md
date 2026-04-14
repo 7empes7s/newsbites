@@ -33,6 +33,7 @@ Each article currently uses this metadata shape:
 - `tags`
 - `status`
 - `lead`
+- `digest`
 - `coverImage`
 - `author`
 
@@ -40,14 +41,53 @@ This schema is inferred from [lib/articles.ts](/opt/newsbites/lib/articles.ts).
 
 ## Supported Verticals
 
-The site currently recognizes exactly four editorial lanes:
+The site reads verticals dynamically from article frontmatter.
+
+Current live content uses:
 
 - `ai`
+- `anime`
 - `finance`
+- `gaming`
 - `global-politics`
+- `healthcare`
+- `skincare`
+- `space`
+- `sports`
+- `tcm`
 - `trends`
 
-These are the same four verticals defined in the master plan.
+Additional categories can be introduced by assigning a new `vertical` value in
+article frontmatter.
+
+## Category Groups
+
+The main nav bar, homepage "Category Radar", and reader app filter operate at
+the **group** level — a coarser layer above verticals that keeps navigation
+from bloating as new verticals are introduced.
+
+Current groups (defined in `lib/article-taxonomy.ts`):
+
+- `ai` → verticals: `ai`, `trends`
+- `finance` → verticals: `finance`
+- `world` → verticals: `global-politics`
+- `science` → verticals: `space`, `healthcare`
+- `wellness` → verticals: `tcm`, `skincare`
+- `culture` → verticals: `anime`, `gaming`, `sports`
+
+Rules:
+
+- Per-article `vertical` stays unchanged — frontmatter is never rewritten when
+  groups are reorganized.
+- Each vertical renders its own page at `/category/[vertical]` (unchanged).
+- Each group renders an aggregate page at `/group/[group]` with a drill-down
+  chip row into its child verticals.
+- To move a vertical to a different group, edit the `VERTICAL_TO_GROUP` map in
+  `lib/article-taxonomy.ts`. No content changes required.
+- Adding a brand-new vertical still auto-appears on `/` and at
+  `/category/<slug>`. It will **not** appear in the group nav until it is
+  mapped in `VERTICAL_TO_GROUP` — this is intentional, so unmapped experimental
+  verticals stay out of the primary navigation.
 
 ## Current Publishing States
 

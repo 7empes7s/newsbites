@@ -62,6 +62,7 @@ function buildArticleFrontmatter(frontmatter, status) {
     tags,
     status,
     lead: String(frontmatter.lead || "").trim(),
+    digest: String(frontmatter.digest || "").trim(),
     coverImage: String(frontmatter.coverImage || ""),
     author: String(frontmatter.author || "NewsBites Desk").trim(),
   };
@@ -88,13 +89,16 @@ function toMarkdown(frontmatter, body) {
     tagsBlock,
     `status: ${JSON.stringify(frontmatter.status)}`,
     `lead: ${JSON.stringify(frontmatter.lead)}`,
+    frontmatter.digest ? `digest: ${JSON.stringify(frontmatter.digest)}` : null,
     `coverImage: ${JSON.stringify(frontmatter.coverImage)}`,
     `author: ${JSON.stringify(frontmatter.author)}`,
     "---",
     "",
     body.trim(),
     "",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function main() {

@@ -9,6 +9,7 @@ tags:
   - "attention"
 status: "approved"
 lead: "Users still want powerful software, but they increasingly punish products that feel busy, loud, or permanently unfinished."
+digest: "Digital products have piled on so many panels, nudges, and banners that users increasingly feel the software is talking at them instead of working for them. Calmer interfaces are starting to win — not because they're more capable, but because they reduce decisions per screen, make the next action obvious, and earn each new element. The winners in the next wave may be the tools that remove enough clutter for users to feel calm again."
 coverImage: ""
 author: "NewsBites Desk"
 ---

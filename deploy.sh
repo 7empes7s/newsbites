@@ -3,23 +3,16 @@ set -euo pipefail
 
 cd /opt/newsbites
 
-npm install --include=dev
+npm install --include=dev --legacy-peer-deps
 npm run build
 
-# Restart the service — try systemctl first, fall back to direct process kill+restart
-if command -v systemctl &>/dev/null && systemctl is-active newsbites.service &>/dev/null; then
-  systemctl restart newsbites.service
-elif [ -f /opt/newsbites/.pid ]; then
-  kill "$(cat /opt/newsbites/.pid)" 2>/dev/null || true
-  sleep 1
-  nohup npm run start -- --hostname 127.0.0.1 --port 3001 > /opt/newsbites/server.log 2>&1 &
-  echo $! > /opt/newsbites/.pid
-else
-  # No PID file — find and kill existing next-server, then start fresh
-  pkill -f "next-server.*3001" 2>/dev/null || true
-  sleep 1
-  nohup npm run start -- --hostname 127.0.0.1 --port 3001 > /opt/newsbites/server.log 2>&1 &
-  echo $! > /opt/newsbites/.pid
+# This script is intentionally host-only. Container callers should use
+# /opt/newsbites/trigger-deploy.sh so the host systemd unit owns restarts.
+if ! command -v systemctl &>/dev/null; then
+  echo "deploy.sh must run on the host with systemctl available. Use /opt/newsbites/trigger-deploy.sh from container contexts." >&2
+  exit 1
 fi
+
+systemctl restart newsbites.service
 
 echo "NewsBites deployed successfully."

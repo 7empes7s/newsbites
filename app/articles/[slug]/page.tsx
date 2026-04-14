@@ -6,6 +6,7 @@ import { getVerticalLabel } from "@/lib/article-taxonomy";
 import { getAllArticles, getArticleBySlug } from "@/lib/articles";
 import { detectTickerFromArticle } from "@/lib/finance/tickers";
 import { FinanceOverlay } from "@/components/finance/FinanceOverlay";
+import { ArticleIntelPanel } from "@/components/article-panel/ArticleIntelPanel";
 
 export function generateStaticParams() {
   return getAllArticles().map((article) => ({ slug: article.slug }));
@@ -63,6 +64,9 @@ export default async function ArticlePage({
           </div>
         </div>
         <aside className="article-sidebar">
+          {/* Dynamic intelligence panel — renders when vertical/tags match a registered panel */}
+          <ArticleIntelPanel article={article} />
+
           <div className="sidebar-panel">
             <h2>Author</h2>
             <p>{article.author}</p>

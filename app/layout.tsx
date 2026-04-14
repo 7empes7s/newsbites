@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { SiteChrome } from "@/components/site-chrome";
-import { getAllVerticals } from "@/lib/articles";
+import { getAllGroups } from "@/lib/articles";
 import "./globals.css";
 
 const bodyFont = DM_Sans({
@@ -17,7 +17,7 @@ const displayFont = Playfair_Display({
 export const metadata: Metadata = {
   title: "NewsBites",
   description:
-    "Simple news with an editorial pulse. NewsBites turns complex stories into sharp, readable briefings across AI, finance, global politics, and trends.",
+    "Simple news with an editorial pulse. NewsBites turns complex stories into sharp, readable briefings across technology, business, politics, culture, sport, and more.",
 };
 
 export const viewport: Viewport = {
@@ -31,7 +31,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const verticals = getAllVerticals();
+  const groups = getAllGroups();
   return (
     <html
       lang="en"
@@ -43,7 +43,7 @@ export default function RootLayout({
           <div className="site-orb site-orb-right" />
           <div className="site-gridline" />
         </div>
-        <SiteChrome verticals={verticals}>{children}</SiteChrome>
+        <SiteChrome groups={groups}>{children}</SiteChrome>
       </body>
     </html>
   );
