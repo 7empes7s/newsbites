@@ -15,6 +15,9 @@ lead: "All four Champions League quarter-final ties are still alive after the fi
 digest: "No quarter-final is settled yet. Arsenal and Bayern lead by one goal, while Atletico and Paris Saint-Germain carry two-goal cushions into the return legs."
 coverImage: ""
 author: "NewsBites Desk"
+panel_hints:
+  competition: "CL"
+  teams: ["Arsenal", "Bayern Munich", "Atletico Madrid", "Paris Saint-Germain"]
 ---
 
 The 2025/26 UEFA Champions League quarter-finals now have shape. After the

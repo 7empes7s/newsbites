@@ -1,0 +1,32 @@
+[
+  {
+    "id": "iran-nuclear",
+    "title": "Iran Nuclear Negotiations",
+    "countryCodes": ["IR", "US"],
+    "events": [
+      { "date": "2026-04-08", "summary": "US-Iran ceasefire announced" },
+      { "date": "2026-03-15", "summary": "IAEA inspection access expanded" },
+      { "date": "2026-02-20", "summary": "Economic sanctions eased conditionally" }
+    ]
+  },
+  {
+    "id": "ukraine-war",
+    "title": "Ukraine Conflict",
+    "countryCodes": ["UA", "RU"],
+    "events": [
+      { "date": "2026-04-10", "summary": "Peace talks resume in Geneva" },
+      { "date": "2026-03-28", "summary": "Humanitarian corridor established" },
+      { "date": "2026-02-15", "summary": "EU sanctions extended" }
+    ]
+  },
+  {
+    "id": "israel-gaza",
+    "title": "Israel-Gaza Situation",
+    "countryCodes": ["IL", "PS"],
+    "events": [
+      { "date": "2026-04-05", "summary": "Ceasefire agreement reached" },
+      { "date": "2026-03-20", "summary": "UN peacekeepers deployed" },
+      { "date": "2026-02-28", "summary": "Aid deliveries resumed" }
+    ]
+  }
+]

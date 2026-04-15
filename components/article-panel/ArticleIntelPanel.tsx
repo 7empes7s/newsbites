@@ -1,6 +1,5 @@
 import type { Article } from "@/lib/articles";
 import { getPanelSections } from "@/lib/panels/registry";
-import type { ResolvedSection } from "@/lib/panels/types";
 import { PanelDrawer } from "./PanelDrawer";
 
 interface Props {
@@ -12,40 +11,28 @@ export async function ArticleIntelPanel({ article }: Props) {
 
   if (configs.length === 0) return null;
 
-  // Fetch all sections in parallel; silently drop any that fail
-  const settled = await Promise.allSettled(
+  const sections = await Promise.all(
     configs.map(async (section) => {
-      const data = await section.fetchData(article);
-      return { section, data } as ResolvedSection;
-    }),
+      const content = await section.component(article);
+      return { id: section.id, content, priority: section.priority };
+    })
   );
 
-  const sections: ResolvedSection[] = settled
-    .filter((r): r is PromiseFulfilledResult<ResolvedSection> => r.status === "fulfilled")
-    .map((r) => r.value);
+  const validSections = sections.filter((s) => s.content !== null);
 
-  if (sections.length === 0) return null;
+  if (validSections.length === 0) return null;
 
   return (
     <>
-      {/* Desktop — inline in the article sidebar */}
       <div className="intel-panel-desktop">
-        {sections.map(({ section, data }) => {
-          const Component = section.Component;
-          return (
-            <div key={section.id} className="intel-panel-section">
-              <div className="intel-panel-section-header">
-                <section.icon size={14} aria-hidden="true" />
-                <span>{section.title}</span>
-              </div>
-              <Component article={article} data={data} />
-            </div>
-          );
-        })}
+        {validSections.map(({ id, content }) => (
+          <div key={id} className="intel-panel-section">
+            {content}
+          </div>
+        ))}
       </div>
 
-      {/* Mobile — bottom drawer (client component, receives pre-fetched data) */}
-      <PanelDrawer sections={sections} article={article} />
+      <PanelDrawer sections={validSections} article={article} />
     </>
   );
 }

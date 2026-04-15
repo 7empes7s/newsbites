@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import { PanelTabBar } from "./PanelTabBar";
-import type { ResolvedSection } from "@/lib/panels/types";
 import type { Article } from "@/lib/articles";
+
+interface ResolvedSection {
+  id: string;
+  content: React.ReactNode;
+  priority: number;
+}
 
 interface Props {
   sections: ResolvedSection[];
@@ -12,19 +17,17 @@ interface Props {
 
 export function PanelDrawer({ sections, article }: Props) {
   const [open, setOpen] = useState(false);
-  const [activeId, setActiveId] = useState(sections[0]?.section.id ?? "");
+  const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
 
   if (sections.length === 0) return null;
 
-  const activeSection = sections.find((s) => s.section.id === activeId) ?? sections[0];
-  const ActiveComponent = activeSection.section.Component;
+  const activeSection = sections.find((s) => s.id === activeId) ?? sections[0];
 
   return (
     <div
       className={`intel-drawer${open ? " intel-drawer--open" : ""}`}
       aria-label="Article intelligence panel"
     >
-      {/* Handle bar */}
       <button
         className="intel-drawer-handle"
         onClick={() => setOpen((v) => !v)}
@@ -34,7 +37,7 @@ export function PanelDrawer({ sections, article }: Props) {
         <span className="intel-drawer-handle-bar" />
         <span className="intel-drawer-handle-label">
           {sections.length === 1
-            ? sections[0].section.title
+            ? "Live Data"
             : `${sections.length} live data panels`}
         </span>
         <span className="intel-drawer-chevron" aria-hidden="true">
@@ -42,19 +45,17 @@ export function PanelDrawer({ sections, article }: Props) {
         </span>
       </button>
 
-      {/* Body — visible when open */}
       <div id="intel-drawer-body" className="intel-drawer-body" hidden={!open}>
         <PanelTabBar
           tabs={sections.map((s) => ({
-            id: s.section.id,
-            title: s.section.title,
-            icon: s.section.icon,
+            id: s.id,
+            title: "Panel",
           }))}
           activeId={activeId}
           onSelect={setActiveId}
         />
         <div className="intel-drawer-content">
-          <ActiveComponent article={article} data={activeSection.data} />
+          {activeSection?.content}
         </div>
       </div>
     </div>

@@ -14,7 +14,6 @@ interface FinanceOverlayProps {
   tickerLabel: string;
 }
 
-// Mini sparkline — 7-day price movement
 function MiniSparkline({ prices, positive }: { prices: number[]; positive: boolean }) {
   if (prices.length < 2) return null;
   const W = 80;
@@ -37,12 +36,18 @@ function MiniSparkline({ prices, positive }: { prices: number[]; positive: boole
 }
 
 export function FinanceOverlay({ ticker, tickerLabel }: FinanceOverlayProps) {
+  const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const [market, setMarket] = useState<MarketData | null>(null);
   const [prices, setPrices] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     async function load() {
+      setLoading(true);
       try {
         const [mktRes, histRes] = await Promise.all([
           fetch(`/api/finance/market?symbols=${ticker}`),
@@ -66,7 +71,6 @@ export function FinanceOverlay({ ticker, tickerLabel }: FinanceOverlayProps) {
           setPrices((hist as { price: number }[]).map(d => d.price).filter(Boolean));
         }
       } catch {
-        // silently ignore — overlay is non-critical
       } finally {
         setLoading(false);
       }
@@ -74,7 +78,7 @@ export function FinanceOverlay({ ticker, tickerLabel }: FinanceOverlayProps) {
     load();
   }, [ticker]);
 
-  if (loading) {
+  if (loading || !isMounted) {
     return (
       <div className="my-6 flex items-center gap-3 p-4 rounded-xl border border-slate-100 bg-slate-50 animate-pulse">
         <div className="h-4 w-16 bg-slate-200 rounded" />
@@ -83,40 +87,36 @@ export function FinanceOverlay({ ticker, tickerLabel }: FinanceOverlayProps) {
     );
   }
 
-  const isPositive = (market?.changePercent ?? 0) >= 0;
+  if (!market) {
+    return null;
+  }
+
+  const isPositive = market.changePercent >= 0;
+
+  const formatPrice = (price: number) => {
+    if (price >= 1000) {
+      return price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    return price.toFixed(2);
+  };
 
   return (
     <div className="my-6 flex items-center gap-4 flex-wrap p-4 rounded-xl border border-slate-200 bg-white shadow-sm">
-      {/* Ticker badge */}
       <span className="px-2 py-1 rounded-md text-xs font-mono font-bold bg-[#1B2A4A] text-white shrink-0">
         {ticker}
       </span>
-
-      {/* Label */}
       <span className="text-sm font-medium text-[#1B2A4A] shrink-0">{tickerLabel}</span>
-
-      {/* Price + change */}
-      {market && (
-        <div className="flex items-baseline gap-2 shrink-0">
-          <span className="font-semibold text-[#1B2A4A]">
-            ${market.price >= 1000
-              ? market.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-              : market.price.toFixed(2)}
-          </span>
-          <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {isPositive ? '▲' : '▼'} {Math.abs(market.changePercent).toFixed(2)}%
-          </span>
-        </div>
-      )}
-
-      {/* Mini sparkline */}
+      <div className="flex items-baseline gap-2 shrink-0">
+        <span className="font-semibold text-[#1B2A4A]">${formatPrice(market.price)}</span>
+        <span className={`text-xs font-medium ${isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+          {isPositive ? '▲' : '▼'} {Math.abs(market.changePercent).toFixed(2)}%
+        </span>
+      </div>
       {prices.length >= 2 && (
         <div className="shrink-0">
           <MiniSparkline prices={prices} positive={isPositive} />
         </div>
       )}
-
-      {/* CTA */}
       <Link
         href={`/finance/charts?ticker=${ticker}`}
         className="ml-auto text-xs font-medium text-[#F5A623] hover:underline shrink-0"

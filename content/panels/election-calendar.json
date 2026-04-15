@@ -1,0 +1,8 @@
+[
+  { "country": "Germany", "countryCode": "DE", "date": "2026-09-20", "type": "Federal", "note": "Bundestag election" },
+  { "country": "Brazil", "countryCode": "BR", "date": "2026-10-04", "type": "Presidential" },
+  { "country": "France", "countryCode": "FR", "date": "2027-04-15", "type": "Presidential" },
+  { "country": "Japan", "countryCode": "JP", "date": "2026-07-25", "type": "General" },
+  { "country": "United Kingdom", "countryCode": "GB", "date": "2027-05-07", "type": "General" },
+  { "country": "Canada", "countryCode": "CA", "date": "2026-10-20", "type": "Federal" }
+]
