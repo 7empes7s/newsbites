@@ -1175,31 +1175,190 @@ html.nb-flow-lock {
 /* Tab bar (shown when a panel has > 1 section) */
 .intel-panel-tabbar {
   display: flex;
-  gap: 4px;
-  padding: 8px 10px 0;
-  flex-wrap: wrap;
+  gap: 0;
+  padding: 8px 0 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.intel-panel-tabbar::-webkit-scrollbar {
+  display: none;
 }
 
 .intel-panel-tab {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--line);
+  padding: 8px 14px;
+  border: none;
   background: transparent;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   color: var(--ink-soft);
+  white-space: nowrap;
+  position: relative;
+}
+
+.intel-panel-tab::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.intel-panel-tab.active {
+  color: var(--navy, #1B2A4A);
+}
+
+.intel-panel-tab.active::after {
+  background: var(--accent, #F5A623);
+}
+
+.intel-panel-tab:hover {
+  color: var(--ink);
+}
+
+/* Inline panel sections for reader app */
+.nb-panel-inline {
+  padding: 12px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+}
+
+.nb-panel-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.nb-panel-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.nb-panel-empty {
+  padding: 16px;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.nb-panel-section {
+  margin-bottom: 12px;
+}
+
+.nb-panel-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Intelligence button for reader app - Focus mode */
+.nb-intelligence-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--paper);
+  color: var(--ink-soft);
+  border: none;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.intel-panel-tab.active,
-.intel-panel-tab:hover {
+.nb-intelligence-btn:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+/* Flow mode panel - right side drawer */
+.nb-flow-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease;
+}
+
+.nb-flow-panel-sheet {
+  background: var(--paper);
+  width: 90%;
+  max-width: 420px;
+  height: 100%;
+  border-left: 1px solid var(--line);
+  padding: 16px;
+  overflow-y: auto;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.nb-flow-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--line);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nb-flow-panel-pill {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+}
+
+.nb-intelligence-pill {
+  padding: 8px 14px;
   background: var(--navy, #1B2A4A);
   color: #fff;
-  border-color: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Mobile bottom drawer — hidden on desktop */
@@ -1210,6 +1369,19 @@ html.nb-flow-lock {
 @media (max-width: 768px) {
   .intel-panel-desktop {
     display: none;
+  }
+
+  .intel-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 199;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .intel-drawer {

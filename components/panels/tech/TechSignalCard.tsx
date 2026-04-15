@@ -67,55 +67,73 @@ const TECH_TOPICS: Record<string, string> = {
   "gpt-3.5": "LLM",
   "claude-3.5": "LLM",
   "claude-3": "LLM",
-  "gemini-1.5": "LLM",
-  "gemini-2.0": "LLM",
+  "claude": "Anthropic",
+  "gemini-1.5": "Google AI",
+  "gemini-2.0": "Google AI",
+  "gemini": "Google AI",
   "llama-3": "LLM",
   "llama-3.1": "LLM",
   "mistral": "LLM",
   "qwen": "LLM",
-  "gemma": "LLM",
-  python: "Python",
-  javascript: "JavaScript",
-  typescript: "TypeScript",
-  react: "React",
-  nextjs: "Next.js",
-  pytorch: "PyTorch",
-  tensorflow: "TensorFlow",
+  "gemma": "Google AI",
+  "python": "Python",
+  "javascript": "JavaScript",
+  "typescript": "TypeScript",
+  "react": "React",
+  "nextjs": "Next.js",
+  "pytorch": "PyTorch",
+  "tensorflow": "TensorFlow",
   "openai": "OpenAI",
   "anthropic": "Anthropic",
-  "google-ai": "Google AI",
+  "google": "Google AI",
 };
 
-function detectTechTopic(content: string): string | null {
+function detectTechTopics(content: string): string[] {
   const contentLower = content.toLowerCase();
+  const matchedTopics: string[] = [];
   for (const [keyword, topic] of Object.entries(TECH_TOPICS)) {
     if (contentLower.includes(keyword)) {
-      return topic;
+      if (!matchedTopics.includes(topic)) {
+        matchedTopics.push(topic);
+      }
     }
   }
-  return null;
+  return matchedTopics;
 }
 
 export async function TechSignalPanel({ article }: { article: Article }) {
   const { content = "" } = article;
   
   const detectedModels = detectAIModels(content);
-  const techTopic = detectTechTopic(content);
+  const techTopics = detectTechTopics(content);
   
-  if (detectedModels.length === 0 && !techTopic) return null;
+  const allTopics = [...new Set([...techTopics, ...detectedModels])];
   
-  const searchTopic = detectedModels[0] || techTopic;
-  if (!searchTopic) return null;
+  if (allTopics.length === 0) return null;
   
-  const trending = await fetchTrendingRepos(searchTopic);
+  const allRepos: TrendingRepo[] = [];
   
-  if (trending.length === 0) return null;
+  for (const topic of allTopics) {
+    const repos = await fetchTrendingRepos(topic);
+    allRepos.push(...repos);
+  }
+  
+  const uniqueRepos = allRepos.reduce((acc, repo) => {
+    if (!acc.find(r => r.name === repo.name)) {
+      acc.push(repo);
+    }
+    return acc;
+  }, [] as TrendingRepo[]);
+  
+  uniqueRepos.sort((a, b) => b.stars - a.stars);
+  
+  if (uniqueRepos.length === 0) return null;
 
   return (
     <div className="tech-signal-panel">
-      <h3 className="text-sm font-semibold text-[#1B2A4A] mb-3">Trending in {searchTopic}</h3>
-      <div className="space-y-2">
-        {trending.map((repo, idx) => (
+      <h3 className="text-sm font-semibold text-[#1B2A4A] mb-3">Trending in {allTopics.slice(0, 3).join(", ")}</h3>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {uniqueRepos.slice(0, 10).map((repo, idx) => (
           <TrendingCard key={idx} repo={repo} />
         ))}
       </div>

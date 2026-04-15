@@ -34,7 +34,7 @@ const SIGNAL_COLORS = {
 };
 
 // Native SVG chart — no external dependencies, React 19 compatible
-function PriceChart({ data, positive }: { data: HistoricalData[]; positive: boolean }) {
+function PriceChart({ data, positive, symbol }: { data: HistoricalData[]; positive: boolean; symbol: string }) {
   if (data.length < 2) return null;
 
   const W = 400;
@@ -110,16 +110,13 @@ function PriceChart({ data, positive }: { data: HistoricalData[]; positive: bool
   );
 }
 
-// Need symbol in scope for fillId uniqueness — hoist it
-let symbol = '';
-
 export function TickerChart({ symbol: sym, title, articles, signal }: TickerChartProps) {
-  symbol = sym;
   const [range, setRange] = useState<RangeKey>('1M');
   const [data, setData] = useState<HistoricalData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     fetchHistory(sym, range).then(d => {
       setData(d);
@@ -193,7 +190,7 @@ export function TickerChart({ symbol: sym, title, articles, signal }: TickerChar
             <span className="animate-pulse">Loading…</span>
           </div>
         ) : hasData ? (
-          <PriceChart data={validData} positive={isPositive} />
+          <PriceChart data={validData} positive={isPositive} symbol={sym} />
         ) : (
           <div className="h-28 flex items-center justify-center text-slate-400 text-sm">
             No data available

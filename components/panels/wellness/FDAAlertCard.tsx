@@ -27,6 +27,10 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
+function buildFDASearchUrl(recallNumber: string): string {
+  return `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts?search=${encodeURIComponent(recallNumber)}`;
+}
+
 export async function FDAAlertPanel({ article }: { article: Article }) {
   const term = article.tags?.[0] || article.vertical || "drug";
   
@@ -42,25 +46,16 @@ export async function FDAAlertPanel({ article }: { article: Article }) {
       <div className="intel-panel-section-header">
         <span>FDA Alerts</span>
       </div>
-      <p className="text-xs opacity-60 mb-2 ml-3">Recent recalls related to "{term}"</p>
+      <p className="text-xs opacity-60 mb-2 ml-3">Active recalls for &quot;{term}&quot;</p>
       {alerts.map((alert, idx) => {
         const productName = alert.product_description.split(",")[0] || "Product";
         const firm = alert.recalling_firm || "Unknown firm";
-        const recallUrl = alert.recall_number 
-          ? `https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/recall-${alert.recall_number.toLowerCase()}`
-          : "#";
+        const searchUrl = buildFDASearchUrl(alert.recall_number || "");
         
         return (
           <div key={idx} className="px-3 py-2 border-b border-[var(--line)] last:border-0">
             <div className="flex items-start justify-between gap-2">
-              <a
-                href={recallUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium line-clamp-2 hover:text-[var(--accent)] hover:underline"
-              >
-                {productName.slice(0, 80)}
-              </a>
+              <p className="text-sm font-medium line-clamp-2">{productName.slice(0, 80)}</p>
               <span 
                 className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
                 style={{ backgroundColor: `${getSeverityColor(alert.classification || "Class III")}20`, color: getSeverityColor(alert.classification || "Class III") }}
@@ -69,9 +64,16 @@ export async function FDAAlertPanel({ article }: { article: Article }) {
               </span>
             </div>
             <p className="text-xs opacity-70 mt-1 line-clamp-2">{alert.reason_for_recall}</p>
-            <div className="flex justify-between mt-1">
+            <div className="flex items-center justify-between mt-1">
               <span className="text-[10px] opacity-50">{firm.slice(0, 30)}</span>
-              <span className="text-[10px] opacity-50">{formatDate(alert.recall_initiation_date)}</span>
+              <a 
+                href={searchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] hover:underline color-[var(--accent)]"
+              >
+                {alert.recall_number}
+              </a>
             </div>
           </div>
         );

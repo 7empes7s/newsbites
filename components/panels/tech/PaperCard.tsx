@@ -57,17 +57,52 @@ function PaperCard({ paper }: PaperCardProps) {
   );
 }
 
+const PAPER_KEYWORDS = [
+  "machine learning", "neural network", "deep learning", "transformer",
+  "llm", "language model", "gpt", "claude", "gemini", "anthropic", "openai",
+  "python", "pytorch", "tensorflow", "keras",
+];
+
+function extractPaperKeywords(content: string): string[] {
+  const contentLower = content.toLowerCase();
+  const keywords: string[] = [];
+  for (const kw of PAPER_KEYWORDS) {
+    if (contentLower.includes(kw)) {
+      keywords.push(kw);
+    }
+  }
+  return keywords.slice(0, 3);
+}
+
 export async function PaperCardPanel({ article }: { article: Article }) {
-  const title = article.title;
+  const { content = "" } = article;
   
-  const paper = await fetchPaperWithCode(title);
+  const keywords = extractPaperKeywords(content);
+  if (keywords.length === 0) return null;
   
-  if (!paper) return null;
+  const papers = await Promise.all(
+    keywords.map(kw => fetchPaperWithCode(kw))
+  );
+  
+  const validPapers = papers.filter((p): p is NonNullable<typeof p> => p !== null);
+  
+  const uniquePapers = validPapers.reduce((acc, paper) => {
+    if (!acc.find(p => p.title === paper.title)) {
+      acc.push(paper);
+    }
+    return acc;
+  }, [] as typeof validPapers);
+  
+  if (uniquePapers.length === 0) return null;
 
   return (
     <div className="paper-card-panel">
-      <h3 className="text-sm font-semibold text-[#1B2A4A] mb-3">Related Paper</h3>
-      <PaperCard paper={paper} />
+      <h3 className="text-sm font-semibold text-[#1B2A4A] mb-3">Related Papers</h3>
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {uniquePapers.slice(0, 5).map((paper, idx) => (
+          <PaperCard key={idx} paper={paper} />
+        ))}
+      </div>
     </div>
   );
 }

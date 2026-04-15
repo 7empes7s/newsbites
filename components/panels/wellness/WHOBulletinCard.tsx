@@ -2,7 +2,7 @@ import { fetchWHONews } from "@/lib/panels/fetchers/wellness";
 
 interface WHONewsItem {
   Title: string;
-  ItemDefaultUrl: string;
+  UrlName: string;
   PublicationDateAndTime: string;
 }
 
@@ -10,6 +10,14 @@ function formatDate(dateStr: string): string {
   if (!dateStr) return "";
   const date = new Date(dateStr);
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function buildWHOUrl(dateStr: string, urlName: string): string {
+  const date = new Date(dateStr);
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = date.getFullYear();
+  return `https://www.who.int/news/item/${dd}-${mm}-${yyyy}-${urlName}`;
 }
 
 export async function WHOBulletinPanel() {
@@ -26,7 +34,7 @@ export async function WHOBulletinPanel() {
         <span>WHO Health News</span>
       </div>
       {news.map((item, idx) => {
-        const fullUrl = `https://www.who.int${item.ItemDefaultUrl}`;
+        const fullUrl = buildWHOUrl(item.PublicationDateAndTime, item.UrlName);
         return (
           <div key={idx} className="px-3 py-2 border-b border-[var(--line)] last:border-0">
             <a

@@ -126,6 +126,12 @@ export async function ModelLeaderboardPanel({ article }: { article: Article }) {
 
 async function ModelLookupPanel({ modelId }: { modelId: string }) {
   const model = await fetchHFModel(modelId);
-  if (!model) return null;
+  if (!model) {
+    return (
+      <div className="p-3 rounded-lg border border-slate-200 bg-white">
+        <div className="text-sm text-slate-500">Model not found: {modelId}</div>
+      </div>
+    );
+  }
   return <ModelCard model={model} />;
 }

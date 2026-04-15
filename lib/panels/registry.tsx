@@ -1,5 +1,5 @@
 import type { Article } from "@/lib/articles";
-import type { PanelConfig } from "./types";
+import type { PanelConfig, PanelHints } from "./types";
 import { StandingsTable } from "@/components/panels/sports/StandingsTable";
 import { FixturesCard } from "@/components/panels/sports/FixturesCard";
 import { PronosticWidget } from "@/components/panels/sports/PronosticWidget";
@@ -27,6 +27,12 @@ import { ClinicalTrialPanel } from "@/components/panels/wellness/ClinicalTrialCo
 import { CO2WidgetPanel } from "@/components/panels/climate/CO2Widget";
 import { TempAnomalyPanel } from "@/components/panels/climate/TempAnomalyChart";
 import { RenewableCapacityPanel } from "@/components/panels/climate/RenewableCapacityCard";
+import AniSeasonCardLoader from "@/components/panels/culture/AniSeasonCard";
+import AnilistProfileCardLoader from "@/components/panels/culture/AnilistProfileCard";
+import GameProfileCardLoader from "@/components/panels/culture/GameProfileCard";
+import ReleasesCalendarCardLoader from "@/components/panels/culture/ReleasesCalendarCard";
+import BoxOfficeCardLoader from "@/components/panels/culture/BoxOfficeCard";
+import RedditSentimentCardLoader from "@/components/panels/trends/RedditSentimentCard";
 import { fetchStandings, fetchUpcomingFixtures, fetchKnockoutMatches, detectAllCompetitions, getCompetitionMeta } from "@/lib/panels/fetchers/sports";
 import { detectTickerFromArticle } from "@/lib/finance/tickers";
 import { calculatePronostic } from "@/lib/panels/pronostics";
@@ -89,7 +95,7 @@ const sportsPanels: PanelConfig<any>[] = [
   {
     id: "sports-pronostic",
     priority: 3,
-    component: async ({ panel_hints }: any) => {
+    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
       const { home_team, away_team, home_form, away_form, h2h_home, h2h_draw, h2h_away } = panel_hints || {};
       if (!home_team || !away_team) return null;
       const result = calculatePronostic(
@@ -115,7 +121,7 @@ const sportsPanels: PanelConfig<any>[] = [
   {
     id: "sports-home-team",
     priority: 4,
-    component: async ({ panel_hints }: any) => {
+    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
       const { home_team, home_crest, home_position, home_form } = panel_hints || {};
       if (!home_team) return null;
       return (
@@ -131,7 +137,7 @@ const sportsPanels: PanelConfig<any>[] = [
   {
     id: "sports-away-team",
     priority: 5,
-    component: async ({ panel_hints }: any) => {
+    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
       const { away_team, away_crest, away_position, away_form } = panel_hints || {};
       if (!away_team) return null;
       return (
@@ -163,12 +169,11 @@ const sportsPanels: PanelConfig<any>[] = [
       const teamMatches: { round: string; homeTeam: string; awayTeam: string; aggregateScore?: string; nextOpponent?: string }[] = [];
       
       for (const [stage, matches] of Object.entries(knockoutMatches)) {
-        const match = (matches as any[]).find(m => 
+        const match = (matches as { homeTeam?: { name?: string }; awayTeam?: { name?: string }; score?: { fullTime?: { home: number; away: number } } }[]).find(m => 
           m.homeTeam?.name?.toLowerCase().includes(teamName.toLowerCase()) ||
           m.awayTeam?.name?.toLowerCase().includes(teamName.toLowerCase())
         );
         if (match) {
-          const isHome = match.homeTeam?.name?.toLowerCase().includes(teamName.toLowerCase());
           const roundName = stage.replace('_', ' ').toLowerCase();
           teamMatches.push({
             round: roundName,
@@ -377,11 +382,53 @@ const climatePanels: PanelConfig<any>[] = [
   },
 ];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const culturePanels: PanelConfig<any>[] = [];
+const animePanels: PanelConfig<any>[] = [
+  {
+    id: "anime-season",
+    priority: 1,
+    component: async (article: Article) => <AniSeasonCardLoader article={article} />,
+  },
+  {
+    id: "anilist-profile",
+    priority: 2,
+    component: async (article: Article) => <AnilistProfileCardLoader article={article} />,
+  },
+];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function getPanelSections(article: Article): PanelConfig<any>[] {
-  const configs: PanelConfig<any>[] = [];
+const gamingPanels: PanelConfig<any>[] = [
+  {
+    id: "game-profile",
+    priority: 1,
+    component: async (article: Article) => <GameProfileCardLoader article={article} />,
+  },
+  {
+    id: "releases-calendar",
+    priority: 2,
+    component: async (article: Article) => <ReleasesCalendarCardLoader article={article} />,
+  },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const culturePanels: PanelConfig<any>[] = [
+  {
+    id: "box-office",
+    priority: 1,
+    component: async () => <BoxOfficeCardLoader />,
+  },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const trendsPanels: PanelConfig<any>[] = [
+  {
+    id: "reddit-sentiment",
+    priority: 1,
+    component: async (article: Article) => <RedditSentimentCardLoader article={article} />,
+  },
+];
+
+export function getPanelSections(article: Article): PanelConfig[] {
+  const configs: PanelConfig[] = [];
   const { vertical, tags = [], panel_hints } = article;
 
   const hasTags = (...t: string[]) => t.some((tag) => tags.includes(tag));
@@ -398,6 +445,9 @@ export function getPanelSections(article: Article): PanelConfig<any>[] {
   if (["ai", "trends", "cybersecurity", "tech"].includes(vertical) || (panel_hints?.github_repos?.length ?? 0) > 0)
     configs.push(...techPanels);
 
+  if (vertical === "trends")
+    configs.push(...trendsPanels);
+
   if (["space", "science"].includes(vertical) || panel_hints?.nasa_mission || panel_hints?.launch_id)
     configs.push(...sciencePanels);
 
@@ -407,7 +457,13 @@ export function getPanelSections(article: Article): PanelConfig<any>[] {
   if (["climate", "energy"].includes(vertical))
     configs.push(...climatePanels);
 
-  if (["anime", "gaming", "culture"].includes(vertical))
+  if (vertical === "anime")
+    configs.push(...animePanels);
+
+  if (vertical === "gaming")
+    configs.push(...gamingPanels);
+
+  if (vertical === "culture" && !hasTags("anime", "gaming"))
     configs.push(...culturePanels);
 
   return configs.sort((a, b) => a.priority - b.priority);
@@ -422,5 +478,8 @@ export {
   sciencePanels,
   wellnessPanels,
   climatePanels,
+  animePanels,
+  gamingPanels,
   culturePanels,
+  trendsPanels,
 };

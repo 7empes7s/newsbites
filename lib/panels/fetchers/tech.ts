@@ -53,11 +53,14 @@ export interface HFModel {
 
 export async function fetchHFModel(modelId: string): Promise<HFModel | null> {
   try {
-    const res = await fetch(`https://huggingface.co/api/models/${modelId}`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    return res.json();
+    const searchRes = await fetch(
+      `https://huggingface.co/api/models?search=${encodeURIComponent(modelId)}&limit=1&sort=downloads`,
+      { next: { revalidate: 3600 } }
+    );
+    if (!searchRes.ok) return null;
+    const searchData = await searchRes.json();
+    if (!searchData || searchData.length === 0) return null;
+    return searchData[0] as unknown as HFModel;
   } catch (error) {
     console.error(`Error fetching HuggingFace model ${modelId}:`, error);
     return null;
@@ -72,23 +75,23 @@ export async function fetchPaperWithCode(title: string): Promise<{
   stars?: number;
 } | null> {
   try {
-    const encoded = encodeURIComponent(title);
-    const res = await fetch(`https://paperswithcode.com/api/v1/papers/?q=${encoded}&items_per_page=1`, {
+    const encoded = encodeURIComponent(title.split(' ').slice(0, 3).join(' '));
+    const res = await fetch(`https://huggingface.co/api/papers?search=${encoded}&limit=3`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
     const data = await res.json();
-    if (!data.results || data.results.length === 0) return null;
-    const paper = data.results[0];
+    if (!data || data.length === 0) return null;
+    const paper = data[0];
     return {
       title: paper.title,
-      abstract: paper.abstract,
-      url: paper.url,
-      repo_url: paper.repo_url,
-      stars: paper.stars,
+      abstract: paper.summary || paper.ai_summary || '',
+      url: `https://huggingface.co/papers/${paper.id}`,
+      repo_url: paper.githubRepo || undefined,
+      stars: paper.upvotes || undefined,
     };
   } catch (error) {
-    console.error(`Error fetching paper with code for "${title}":`, error);
+    console.error(`Error fetching paper for "${title}":`, error);
     return null;
   }
 }
@@ -105,10 +108,14 @@ export async function fetchLMSYSLeaderboard(): Promise<LeaderboardEntry[]> {
       "https://huggingface.co/api/datasets/lmsys/chatbot_arena_leaderboard",
       { next: { revalidate: 86400 } }
     );
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.warn("LMSYS leaderboard fetch failed:", res.status, res.statusText);
+      return [];
+    }
     const data = await res.json();
     return (data.leaderboard || []).slice(0, 5);
-  } catch {
+  } catch (error) {
+    console.warn("LMSYS leaderboard error:", error);
     return [];
   }
 }
