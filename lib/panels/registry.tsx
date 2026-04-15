@@ -21,6 +21,12 @@ import { LaunchTrackerCard } from "@/components/panels/science/LaunchTrackerCard
 import { APODCard } from "@/components/panels/science/APODCard";
 import { ISSPositionCard } from "@/components/panels/science/ISSPositionCard";
 import { MissionStatusCard } from "@/components/panels/science/MissionStatusCard";
+import { FDAAlertPanel } from "@/components/panels/wellness/FDAAlertCard";
+import { WHOBulletinPanel } from "@/components/panels/wellness/WHOBulletinCard";
+import { ClinicalTrialPanel } from "@/components/panels/wellness/ClinicalTrialCounter";
+import { CO2WidgetPanel } from "@/components/panels/climate/CO2Widget";
+import { TempAnomalyPanel } from "@/components/panels/climate/TempAnomalyChart";
+import { RenewableCapacityPanel } from "@/components/panels/climate/RenewableCapacityCard";
 import { fetchStandings, fetchUpcomingFixtures, fetchKnockoutMatches, detectAllCompetitions, getCompetitionMeta } from "@/lib/panels/fetchers/sports";
 import { detectTickerFromArticle } from "@/lib/finance/tickers";
 import { calculatePronostic } from "@/lib/panels/pronostics";
@@ -320,9 +326,56 @@ const sciencePanels: PanelConfig<any>[] = [
   },
 ];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const wellnessPanels: PanelConfig<any>[] = [];
+const wellnessPanels: PanelConfig<any>[] = [
+  {
+    id: "fda-alerts",
+    priority: 1,
+    component: async (article: Article) => {
+      if (!["healthcare", "skincare", "wellness", "tcm"].includes(article.vertical)) return null;
+      return <FDAAlertPanel article={article} />;
+    },
+  },
+  {
+    id: "who-bulletin",
+    priority: 2,
+    component: async () => {
+      return <WHOBulletinPanel />;
+    },
+  },
+  {
+    id: "clinical-trials",
+    priority: 3,
+    component: async (article: Article) => {
+      if (!["healthcare", "wellness", "tcm"].includes(article.vertical)) return null;
+      return <ClinicalTrialPanel article={article} />;
+    },
+  },
+];
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const climatePanels: PanelConfig<any>[] = [];
+const climatePanels: PanelConfig<any>[] = [
+  {
+    id: "co2-widget",
+    priority: 1,
+    component: async () => {
+      return <CO2WidgetPanel />;
+    },
+  },
+  {
+    id: "temp-anomaly",
+    priority: 2,
+    component: async () => {
+      return <TempAnomalyPanel />;
+    },
+  },
+  {
+    id: "renewable-capacity",
+    priority: 3,
+    component: async (article: Article) => {
+      return <RenewableCapacityPanel article={article} />;
+    },
+  },
+];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const culturePanels: PanelConfig<any>[] = [];
 
@@ -348,7 +401,7 @@ export function getPanelSections(article: Article): PanelConfig<any>[] {
   if (["space", "science"].includes(vertical) || panel_hints?.nasa_mission || panel_hints?.launch_id)
     configs.push(...sciencePanels);
 
-  if (["healthcare", "wellness", "t0cm", "skincare"].includes(vertical))
+  if (["healthcare", "wellness", "tcm", "skincare"].includes(vertical))
     configs.push(...wellnessPanels);
 
   if (["climate", "energy"].includes(vertical))

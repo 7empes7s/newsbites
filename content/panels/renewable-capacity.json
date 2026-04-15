@@ -1,0 +1,15 @@
+{
+  "year": 2025,
+  "global": {
+    "solar_gw": 1850,
+    "wind_gw": 1100,
+    "hydro_gw": 1400
+  },
+  "countries": {
+    "CN": { "solar_gw": 620, "wind_gw": 400 },
+    "US": { "solar_gw": 220, "wind_gw": 180 },
+    "DE": { "solar_gw": 90, "wind_gw": 70 },
+    "IN": { "solar_gw": 120, "wind_gw": 45 },
+    "BR": { "solar_gw": 40, "wind_gw": 30 }
+  }
+}

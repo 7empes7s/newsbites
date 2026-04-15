@@ -129,10 +129,10 @@ Shows installed capacity for solar/wind/hydro. If a country is mentioned in the 
 
 ## Done Checklist
 
-- [ ] Phase 23: `FDAAlertCard.tsx` shows recalls with severity badges
-- [ ] Phase 24: `WHOBulletinCard.tsx` shows latest WHO headlines
-- [ ] Phase 24: `ClinicalTrialCounter.tsx` shows trial count for article's condition
-- [ ] Phase 25: `CO2Widget.tsx` shows current ppm with trend
-- [ ] Phase 25: `TempAnomalyChart.tsx` shows temperature data
-- [ ] Phase 26: `RenewableCapacityCard.tsx` shows capacity data
-- [ ] All wellness/climate panels register for correct verticals
+- [x] Phase 23: `FDAAlertCard.tsx` shows recalls with severity badges
+- [x] Phase 24: `WHOBulletinCard.tsx` shows latest WHO headlines
+- [x] Phase 24: `ClinicalTrialCounter.tsx` shows trial count for article's condition
+- [x] Phase 25: `CO2Widget.tsx` shows current ppm with trend
+- [x] Phase 25: `TempAnomalyChart.tsx` shows temperature data
+- [x] Phase 26: `RenewableCapacityCard.tsx` shows capacity data
+- [x] All wellness/climate panels register for correct verticals
