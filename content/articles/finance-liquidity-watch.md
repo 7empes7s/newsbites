@@ -8,6 +8,10 @@ tags:
   - "liquidity"
   - "risk"
 status: "approved"
+panel_hints:
+  tickers:
+    - SPY
+    - QQQ
 lead: "After years of chasing narrative, investors are moving back toward companies that can explain cash, margins, and downside protection in plain language."
 digest: "With rates meaningfully positive for long enough, markets are no longer rewarding vague future stories the way they did during ultra-cheap money. Investors are screening for cleaner balance sheets, predictable cash conversion, and fewer moving parts — and companies that already operate this way are quietly outperforming. The signal to watch: whether premiums on free cash flow hold over premiums on revenue growth."
 coverImage: ""

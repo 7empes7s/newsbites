@@ -1,10 +1,13 @@
 import type { Article } from "@/lib/articles";
 import type { PanelConfig, PanelHints } from "./types";
+import type React from "react";
 import { StandingsTable } from "@/components/panels/sports/StandingsTable";
 import { FixturesCard } from "@/components/panels/sports/FixturesCard";
 import { PronosticWidget } from "@/components/panels/sports/PronosticWidget";
 import { TeamMiniCard } from "@/components/panels/sports/TeamMiniCard";
 import { RouteToFinalCard } from "@/components/panels/sports/RouteToFinalCard";
+import { NBAStandingsCard } from "@/components/panels/sports/NBAStandingsCard";
+import { F1RaceCard } from "@/components/panels/sports/F1RaceCard";
 import { FinancePanel } from "@/components/panels/finance/FinancePanel";
 import { TickerSparklinePanel } from "@/components/panels/finance/TickerSparklineCard";
 import { MacroIndicatorPanel } from "@/components/panels/finance/MacroIndicatorRow";
@@ -33,17 +36,67 @@ import GameProfileCardLoader from "@/components/panels/culture/GameProfileCard";
 import ReleasesCalendarCardLoader from "@/components/panels/culture/ReleasesCalendarCard";
 import BoxOfficeCardLoader from "@/components/panels/culture/BoxOfficeCard";
 import RedditSentimentCardLoader from "@/components/panels/trends/RedditSentimentCard";
-import { fetchStandings, fetchUpcomingFixtures, fetchKnockoutMatches, detectAllCompetitions, getCompetitionMeta } from "@/lib/panels/fetchers/sports";
-import { detectTickerFromArticle } from "@/lib/finance/tickers";
+import { fetchStandings, fetchUpcomingFixtures, fetchKnockoutMatches, detectAllCompetitions, getCompetitionMeta, searchTeamByName, fetchTeamUpcomingMatches, fetchH2HMatches } from "@/lib/panels/fetchers/sports";
+import { detectTickerFromArticle, TICKER_MAP } from "@/lib/finance/tickers";
+import { fetchFinanceDataForTicker } from "@/lib/panels/fetchers/finance";
 import { calculatePronostic } from "@/lib/panels/pronostics";
+
+function normalizeTeamName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[äáàâã]/g, 'a')
+    .replace(/[ëéèê]/g, 'e')
+    .replace(/[ïíìî]/g, 'i')
+    .replace(/[öóòôõ]/g, 'o')
+    .replace(/[üúùû]/g, 'u')
+    .replace(/[ç]/g, 'c')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function teamMatches(teamName: string, searchName: string): boolean {
+  const normalizedTeam = normalizeTeamName(teamName);
+  const normalizedSearch = normalizeTeamName(searchName);
+  return normalizedTeam.includes(normalizedSearch) || normalizedSearch.split(' ').some(word => word.length > 3 && normalizedTeam.includes(word));
+}
+
+type Match = {
+  id: number;
+  utcDate: string;
+  homeTeam: { name: string; crest?: string };
+  awayTeam: { name: string; crest?: string };
+  competition?: { name: string; emblem?: string };
+  score: { fullTime: { home: number | null; away: number | null } };
+  status: string;
+};
 
 const KNOCKOUT_COMPETITIONS = ['CL', 'WC', 'EC'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sportsPanels: PanelConfig<any>[] = [
   {
+    id: "nba-standings",
+    priority: 0,
+    cta: { label: "Full match coverage →", href: "/sports" },
+    component: async (article: Article) => {
+      if (!article.tags?.some(t => t.toLowerCase().includes('nba') || t.toLowerCase().includes('basketball'))) return null;
+      return <NBAStandingsCard article={article} />;
+    },
+  },
+  {
+    id: "f1-race",
+    priority: 0,
+    cta: { label: "Full match coverage →", href: "/sports" },
+    component: async (article: Article) => {
+      if (!article.tags?.some(t => t.toLowerCase().includes('f1') || t.toLowerCase().includes('formula'))) return null;
+      return <F1RaceCard article={article} />;
+    },
+  },
+  {
     id: "sports-standings",
     priority: 1,
+    cta: { label: "Full match coverage →", href: "/sports" },
     component: async (article: Article) => {
       const { tags = [], panel_hints } = article;
       const competitions = detectAllCompetitions(tags, panel_hints);
@@ -52,9 +105,9 @@ const sportsPanels: PanelConfig<any>[] = [
       const elements: React.ReactNode[] = [];
       
       for (const comp of competitions) {
-        const data = await fetchStandings(comp);
+        const data = await fetchStandings(comp, article.slug);
         if (!data) continue;
-        const table = data.standings?.[0]?.table;
+        const table = data.standings?.[0]?.table as unknown as Parameters<typeof StandingsTable>[0]['standings'];
         if (!table) continue;
         const meta = getCompetitionMeta(comp);
         elements.push(
@@ -75,27 +128,62 @@ const sportsPanels: PanelConfig<any>[] = [
     id: "sports-fixtures",
     priority: 2,
     component: async (article: Article) => {
-      const { tags = [], panel_hints } = article;
-      const competitions = detectAllCompetitions(tags, panel_hints);
-      if (competitions.length === 0) return null;
+      const { panel_hints } = article;
+      const { home_team, away_team } = panel_hints || {};
       
-      const elements: React.ReactNode[] = [];
-      
-      for (const comp of competitions) {
-        const data = await fetchUpcomingFixtures(comp);
-        if (!data) continue;
-        const matches = data.matches;
-        if (!matches || matches.length === 0) continue;
-        elements.push(<FixturesCard key={comp} matches={matches} />);
+      if (!home_team || !away_team) {
+        const { tags = [], panel_hints: ph } = article;
+        const competitions = detectAllCompetitions(tags, ph);
+        if (competitions.length === 0) return null;
+        
+        const elements: React.ReactNode[] = [];
+        for (const comp of competitions) {
+          const data = await fetchUpcomingFixtures(comp, article.slug);
+          if (!data) continue;
+          const matches = data.matches as unknown as Parameters<typeof FixturesCard>[0]['matches'];
+          if (!matches || matches.length === 0) continue;
+          elements.push(<FixturesCard key={comp} matches={matches} />);
+        }
+        return elements.length > 0 ? elements : null;
       }
-      
-      return elements.length > 0 ? elements : null;
+
+      const [homeTeam, awayTeam] = await Promise.all([
+        searchTeamByName(home_team),
+        searchTeamByName(away_team),
+      ]);
+
+      if (!homeTeam || !awayTeam) return null;
+
+      const [h2hData, homeFixtures, awayFixtures] = await Promise.all([
+        fetchH2HMatches(homeTeam.id, awayTeam.id),
+        fetchTeamUpcomingMatches(homeTeam.id),
+        fetchTeamUpcomingMatches(awayTeam.id),
+      ]);
+
+      const h2hMatches = (h2hData?.matches || []) as Match[];
+      const homeMatches = (homeFixtures?.matches || []) as Match[];
+      const awayMatches = (awayFixtures?.matches || []) as Match[];
+
+      if (h2hMatches.length === 0 && homeMatches.length === 0 && awayMatches.length === 0) {
+        return null;
+      }
+
+      return (
+        <FixturesCard
+          homeTeamName={home_team}
+          awayTeamName={away_team}
+          h2hMatches={h2hMatches}
+          homeTeamMatches={homeMatches}
+          awayTeamMatches={awayMatches}
+        />
+      );
     },
   },
   {
     id: "sports-pronostic",
     priority: 3,
-    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
+    component: async (article: Article) => {
+      const { panel_hints } = article;
       const { home_team, away_team, home_form, away_form, h2h_home, h2h_draw, h2h_away } = panel_hints || {};
       if (!home_team || !away_team) return null;
       const result = calculatePronostic(
@@ -121,7 +209,8 @@ const sportsPanels: PanelConfig<any>[] = [
   {
     id: "sports-home-team",
     priority: 4,
-    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
+    component: async (article: Article) => {
+      const { panel_hints } = article;
       const { home_team, home_crest, home_position, home_form } = panel_hints || {};
       if (!home_team) return null;
       return (
@@ -137,7 +226,8 @@ const sportsPanels: PanelConfig<any>[] = [
   {
     id: "sports-away-team",
     priority: 5,
-    component: async ({ panel_hints }: { panel_hints?: PanelHints }) => {
+    component: async (article: Article) => {
+      const { panel_hints } = article;
       const { away_team, away_crest, away_position, away_form } = panel_hints || {};
       if (!away_team) return null;
       return (
@@ -156,37 +246,72 @@ const sportsPanels: PanelConfig<any>[] = [
     component: async (article: Article) => {
       const { tags = [], panel_hints } = article;
       const competitions = detectAllCompetitions(tags, panel_hints);
-      const teamName = panel_hints?.teams?.[0];
+      const teams = panel_hints?.teams || [];
       
-      if (!teamName) return null;
+      if (teams.length === 0) return null;
       
       const knockoutComps = competitions.filter(c => KNOCKOUT_COMPETITIONS.includes(c));
       if (knockoutComps.length === 0) return null;
-      
+
       const comp = knockoutComps[0];
-      const knockoutMatches = await fetchKnockoutMatches(comp);
       
-      const teamMatches: { round: string; homeTeam: string; awayTeam: string; aggregateScore?: string; nextOpponent?: string }[] = [];
+      const knockoutMatches = await fetchKnockoutMatches(comp, undefined, article.slug);
+      const upcomingFixtures = await fetchUpcomingFixtures(comp, article.slug);
       
-      for (const [stage, matches] of Object.entries(knockoutMatches)) {
-        const match = (matches as { homeTeam?: { name?: string }; awayTeam?: { name?: string }; score?: { fullTime?: { home: number; away: number } } }[]).find(m => 
-          m.homeTeam?.name?.toLowerCase().includes(teamName.toLowerCase()) ||
-          m.awayTeam?.name?.toLowerCase().includes(teamName.toLowerCase())
-        );
-        if (match) {
-          const roundName = stage.replace('_', ' ').toLowerCase();
-          teamMatches.push({
-            round: roundName,
-            homeTeam: match.homeTeam?.name || '',
-            awayTeam: match.awayTeam?.name || '',
-            aggregateScore: match.score?.fullTime ? `${match.score.fullTime.home}–${match.score.fullTime.away}` : undefined,
-          });
+      const allTeamMatches: { teamName: string; matches: { round: string; homeTeam: string; awayTeam: string; aggregateScore?: string; nextOpponent?: string }[] }[] = [];
+      
+      for (const teamName of teams) {
+        const teamMatchesData: { round: string; homeTeam: string; awayTeam: string; aggregateScore?: string; nextOpponent?: string }[] = [];
+        
+        for (const [stage, matches] of Object.entries(knockoutMatches)) {
+          const match = (matches as { homeTeam?: { name?: string }; awayTeam?: { name?: string }; score?: { fullTime?: { home: number; away: number } } }[]).find(m => 
+            (m.homeTeam?.name && teamMatches(m.homeTeam.name, teamName)) ||
+            (m.awayTeam?.name && teamMatches(m.awayTeam.name, teamName))
+          );
+          if (match) {
+            const roundName = stage.replace('_', ' ').toLowerCase();
+            teamMatchesData.push({
+              round: roundName,
+              homeTeam: match.homeTeam?.name || '',
+              awayTeam: match.awayTeam?.name || '',
+              aggregateScore: match.score?.fullTime ? `${match.score.fullTime.home}–${match.score.fullTime.away}` : undefined,
+            });
+          }
+        }
+        
+        if (upcomingFixtures?.matches) {
+          const semiMatches = (upcomingFixtures.matches as { stage?: string; homeTeam?: { name?: string }; awayTeam?: { name?: string } }[]).filter(
+            m => m.stage === 'SEMI_FINALS' && 
+            ((m.homeTeam?.name && teamMatches(m.homeTeam.name, teamName)) ||
+             (m.awayTeam?.name && teamMatches(m.awayTeam.name, teamName)))
+          );
+          for (const match of semiMatches) {
+            const opponent = match.homeTeam?.name && teamMatches(match.homeTeam.name, teamName) 
+              ? match.awayTeam?.name 
+              : match.homeTeam?.name;
+            teamMatchesData.push({
+              round: 'semi finals',
+              homeTeam: match.homeTeam?.name || '',
+              awayTeam: match.awayTeam?.name || '',
+              nextOpponent: opponent,
+            });
+          }
+        }
+        
+        if (teamMatchesData.length > 0) {
+          allTeamMatches.push({ teamName, matches: teamMatchesData });
         }
       }
       
-      if (teamMatches.length === 0) return null;
+      if (allTeamMatches.length === 0) return null;
       
-      return <RouteToFinalCard teamName={teamName} matches={teamMatches} />;
+      return (
+        <>
+          {allTeamMatches.map(({ teamName, matches }) => (
+            <RouteToFinalCard key={teamName} teamName={teamName} matches={matches} />
+          ))}
+        </>
+      );
     },
   },
 ];
@@ -196,6 +321,7 @@ const financePanels: PanelConfig<any>[] = [
   {
     id: "finance-overview",
     priority: 1,
+    cta: { label: "Finance Intelligence →", href: "/finance" },
     component: async (article: Article) => {
       const ticker = detectTickerFromArticle(article.title, article.content || "");
       if (!ticker) return null;
@@ -205,6 +331,7 @@ const financePanels: PanelConfig<any>[] = [
   {
     id: "finance-sparkline",
     priority: 2,
+    cta: { label: "Finance Intelligence →", href: "/finance" },
     component: async (article: Article) => {
       const ticker = detectTickerFromArticle(article.title, article.content || "");
       if (!ticker) return null;
@@ -427,13 +554,46 @@ const trendsPanels: PanelConfig<any>[] = [
   },
 ];
 
+const compactTickerSection: PanelConfig<any> = {
+  id: "tag-ticker",
+  priority: 40,
+  cta: { label: "Finance Intelligence →", href: "/finance" },
+  component: async (article: Article) => {
+    const ticker = detectTickerFromArticle(article.title, article.content || "");
+    if (!ticker) return null;
+    const data = await fetchFinanceDataForTicker(ticker.symbol);
+    if (!data) return null;
+    const isPositive = (data.changePercent ?? 0) >= 0;
+    return (
+      <div className="ticker-sparkline-panel">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-mono font-bold px-1.5 py-0.5 rounded bg-[#1B2A4A] text-white">{data.symbol}</span>
+          <span className="text-xs text-slate-500">{ticker.name}</span>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-sm font-semibold text-[#1B2A4A]">${data.price >= 1000 ? data.price.toLocaleString("en-US", { minimumFractionDigits: 2 }) : data.price.toFixed(2)}</span>
+          <span className={`text-xs font-medium ${isPositive ? "text-emerald-600" : "text-rose-600"}`}>
+            {isPositive ? "▲" : "▼"} {Math.abs(data.changePercent ?? 0).toFixed(2)}%
+          </span>
+        </div>
+      </div>
+    );
+  },
+};
+
+const launchTrackerSection: PanelConfig<any> = {
+  id: "tag-launch",
+  priority: 40,
+  component: async () => <LaunchTrackerCard />,
+};
+
 export function getPanelSections(article: Article): PanelConfig[] {
   const configs: PanelConfig[] = [];
   const { vertical, tags = [], panel_hints } = article;
 
   const hasTags = (...t: string[]) => t.some((tag) => tags.includes(tag));
 
-  if (vertical === "sports" || hasTags("football", "basketball", "tennis", "formula-1"))
+  if (vertical === "sports" || hasTags("football", "basketball", "tennis", "formula-1", "nba", "f1"))
     configs.push(...sportsPanels);
 
   if (["finance", "economy", "crypto"].includes(vertical) || (panel_hints?.tickers?.length ?? 0) > 0)
@@ -466,7 +626,85 @@ export function getPanelSections(article: Article): PanelConfig[] {
   if (vertical === "culture" && !hasTags("anime", "gaming"))
     configs.push(...culturePanels);
 
-  return configs.sort((a, b) => a.priority - b.priority);
+  // Cross-vertical: tickers on non-finance articles
+  if (!["finance", "economy", "crypto"].includes(vertical) && (panel_hints?.tickers?.length ?? 0) > 0) {
+    const tickerSymbols = panel_hints!.tickers!.slice(0, 3);
+    const isAlreadyIncluded = configs.some(c => c.id === "finance-sparkline");
+    if (!isAlreadyIncluded) {
+      configs.push({
+        id: "cross-vertical-ticker",
+        priority: 50,
+        cta: { label: "Finance Intelligence →", href: "/finance" },
+        component: async (article: Article) => {
+          const results = await Promise.all(tickerSymbols.map(async (sym) => {
+            const data = await fetchFinanceDataForTicker(sym);
+            return data ? { symbol: sym, data } : null;
+          }));
+          const valid = results.filter((r): r is NonNullable<typeof r> => r !== null);
+          if (valid.length === 0) return null;
+          const entries = valid.map(({ symbol, data }) => {
+            const mapping = TICKER_MAP.find(m => m.symbol === symbol);
+            const isPositive = (data.changePercent ?? 0) >= 0;
+            return (
+              <div key={symbol} className="flex items-center gap-2 p-2 rounded border border-slate-200 bg-white text-sm">
+                <span className="px-1.5 py-0.5 rounded text-xs font-mono font-bold bg-[#1B2A4A] text-white">{symbol}</span>
+                <span className="text-xs text-slate-500 hidden sm:inline">{mapping?.name || symbol}</span>
+                <span className="ml-auto font-semibold text-[#1B2A4A]">${data.price >= 1000 ? data.price.toLocaleString("en-US", { minimumFractionDigits: 2 }) : data.price.toFixed(2)}</span>
+                <span className={`text-xs font-medium ${isPositive ? "text-emerald-600" : "text-rose-600"}`}>
+                  {isPositive ? "▲" : "▼"} {Math.abs(data.changePercent ?? 0).toFixed(2)}%
+                </span>
+              </div>
+            );
+          });
+          return <div className="space-y-2">{entries}</div>;
+        },
+      });
+    }
+  }
+
+  // Cross-vertical: GitHub repos on non-tech articles
+  if (!["ai", "trends", "cybersecurity", "tech"].includes(vertical) && (panel_hints?.github_repos?.length ?? 0) > 0) {
+    const isAlreadyIncluded = configs.some(c => c.id === "github-repo");
+    if (!isAlreadyIncluded) {
+      configs.push({
+        id: "cross-vertical-github",
+        priority: 50,
+        component: async (article: Article) => <GitHubRepoPanel article={article} />,
+      });
+    }
+  }
+
+  // Tag-based panel overrides
+  const TAG_PANEL_MAP: Record<string, PanelConfig[]> = {
+    'champions-league': sportsPanels,
+    'premier-league': sportsPanels,
+    'la-liga': sportsPanels,
+    'serie-a': sportsPanels,
+    'bundesliga': sportsPanels,
+    'bitcoin': financePanels,
+    'btc': financePanels,
+    'crypto': financePanels,
+    'nasa': sciencePanels,
+    'spacex': [launchTrackerSection],
+    'nvda': [compactTickerSection],
+    'aapl': [compactTickerSection],
+    'msft': [compactTickerSection],
+  };
+
+  for (const tag of tags) {
+    const tagPanels = TAG_PANEL_MAP[tag.toLowerCase()];
+    if (tagPanels) configs.push(...tagPanels);
+  }
+
+  // Deduplicate by id
+  const seen = new Set<string>();
+  const deduped = configs.filter(c => {
+    if (seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+
+  return deduped.sort((a, b) => a.priority - b.priority);
 }
 
 // Export panel arrays so vertical modules can push into them at import time

@@ -304,17 +304,17 @@ Mimule bot integration: when sending an article link via Telegram, append `?pane
 
 ## Done Checklist
 
-- [ ] Phase 41: `ArticleMarketContext` renders below finance article body
-- [ ] Phase 42: CTA framework added to `PanelConfig` type + renders in panel footer
-- [ ] Phase 43: `/sports/page.tsx` shows live scores, standings, pronostics
-- [ ] Phase 44: `/sports/[competition]` pages for CL, PL, PD, SA, BL1
-- [ ] Phase 45: All panel fetcher `revalidate` values match the table above
-- [ ] Phase 45: Request coalescing added for football-data.org fetcher
-- [ ] Phase 46: `PanelErrorBoundary` wraps every panel section
-- [ ] Phase 46: Type-specific skeleton shapes in `PanelSkeleton.tsx`
-- [ ] Phase 47: Cross-vertical ticker + GitHub panels inject when `panel_hints` present
-- [ ] Phase 48: Tag-based panel overrides work (bitcoin tag → crypto panel)
-- [ ] Phase 49: Panel preferences (hidden sections, pinned tabs) persist in localStorage
-- [ ] Phase 50: Team/vertical/ticker subscriptions wire into panel + reader app
-- [ ] Phase 51: `?panel=X` URL param restores panel tab on page load
-- [ ] Phase 52: All 20 articles have correct panel_hints, all panel types verified
+- [x] Phase 41: `ArticleMarketContext` renders below finance article body
+- [x] Phase 42: CTA framework added to `PanelConfig` type + renders in panel footer
+- [x] Phase 43: `/sports/page.tsx` shows live scores, standings, pronostics
+- [x] Phase 44: `/sports/[competition]` pages for CL, PL, PD, SA, BL1
+- [x] Phase 45: All panel fetcher `revalidate` values match the table above
+- [x] Phase 45: Request coalescing added for football-data.org fetcher
+- [x] Phase 46: `PanelErrorBoundary` wraps every panel section
+- [x] Phase 46: Type-specific skeleton shapes in `PanelSkeleton.tsx`
+- [x] Phase 47: Cross-vertical ticker + GitHub panels inject when `panel_hints` present
+- [x] Phase 48: Tag-based panel overrides work (bitcoin tag → crypto panel)
+- [x] Phase 49: Panel preferences (hidden sections, pinned tabs) persist in localStorage
+- [x] Phase 50: Team/vertical/ticker subscriptions wire into panel + reader app
+- [x] Phase 51: `?panel=X` URL param restores panel tab on page load
+- [x] Phase 52: All articles have correct panel_hints, all panel types verified

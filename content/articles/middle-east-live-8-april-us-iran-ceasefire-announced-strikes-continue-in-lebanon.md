@@ -10,6 +10,11 @@ tags:
   - "un"
   - "ceasefire"
 status: "published"
+panel_hints:
+  country_codes:
+    - IR
+    - IL
+    - LB
 lead: "The United Nations welcomed a two-week US-Iran ceasefire, but continued strikes in Lebanon, mass displacement, and peacekeeper deaths show the region remains unstable."
 digest: "The US-Iran ceasefire matters, but Lebanon's continuing violence shows the wider regional crisis is far from contained."
 coverImage: ""

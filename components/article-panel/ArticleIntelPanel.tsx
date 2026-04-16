@@ -2,11 +2,14 @@ import type { Article } from "@/lib/articles";
 import type React from "react";
 import { getPanelSections } from "@/lib/panels/registry";
 import { PanelDrawer } from "./PanelDrawer";
+import { ErrorBoundary } from "./ErrorBoundary";
+import Link from "next/link";
 
 interface ResolvedSection {
   id: string;
   content: React.ReactNode;
   priority: number;
+  cta?: { label: string; href: string };
 }
 
 function PanelEmptyFallback({ panelId }: { panelId: string }) {
@@ -23,6 +26,8 @@ function PanelEmptyFallback({ panelId }: { panelId: string }) {
     "sports-home-team": "Home Team Stats",
     "sports-away-team": "Away Team Stats",
     "sports-route-to-final": "Knockout Bracket",
+    "nba-standings": "NBA Standings",
+    "f1-race": "F1 Race",
     "finance-overview": "Market Overview",
     "finance-sparkline": "Ticker Data",
     "macro-indicators": "Macro Indicators",
@@ -63,7 +68,7 @@ export async function ArticleIntelPanel({ article }: Props) {
   const sections = await Promise.all(
     configs.map(async (section) => {
       const content = await section.component(article);
-      return { id: section.id, content, priority: section.priority };
+      return { id: section.id, content, priority: section.priority, cta: section.cta };
     })
   );
 
@@ -82,9 +87,18 @@ export async function ArticleIntelPanel({ article }: Props) {
   return (
     <>
       <div className="intel-panel-desktop">
-        {validSections.map(({ id, content }) => (
+        {validSections.map(({ id, content, cta }) => (
           <div key={id} className="intel-panel-section">
-            {content}
+            <ErrorBoundary>
+              {content}
+            </ErrorBoundary>
+            {cta && (
+              <div className="panel-cta">
+                <Link href={cta.href} className="panel-cta-link">
+                  {cta.label}
+                </Link>
+              </div>
+            )}
           </div>
         ))}
       </div>

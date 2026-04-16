@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { PanelTabBar } from "./PanelTabBar";
 import type { Article } from "@/lib/articles";
 
@@ -26,6 +27,8 @@ const PANEL_NAMES: Record<string, string> = {
   "sports-home-team": "Home Team Stats",
   "sports-away-team": "Away Team Stats",
   "sports-route-to-final": "Knockout Bracket",
+  "nba-standings": "NBA Standings",
+  "f1-race": "F1 Race",
   "finance-overview": "Market Overview",
   "finance-sparkline": "Ticker Data",
   "macro-indicators": "Macro Indicators",
@@ -42,6 +45,10 @@ const PANEL_NAMES: Record<string, string> = {
   "apod": "Astronomy Picture",
   "iss-position": "ISS Position",
   "mission-status": "Mission Status",
+  "cross-vertical-ticker": "Market Ticker",
+  "cross-vertical-github": "Repository",
+  "tag-ticker": "Market Ticker",
+  "tag-launch": "Space Launches",
 };
 
 function isEmptyFallback(content: React.ReactNode): boolean {
@@ -68,9 +75,11 @@ interface Props {
   article: Article;
 }
 
-export function PanelDrawer({ sections, article: _article }: Props) {
-  const [open, setOpen] = useState(false);
-  const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
+export function PanelDrawer({ sections, article: _article, initialPanelId }: Props & { initialPanelId?: string }) {
+  const searchParams = useSearchParams();
+  const deepLinkPanel = initialPanelId || searchParams.get("panel") || "";
+  const [open, setOpen] = useState(!!deepLinkPanel);
+  const [activeId, setActiveId] = useState(deepLinkPanel && sections.some(s => s.id === deepLinkPanel) ? deepLinkPanel : (sections[0]?.id ?? ""));
   const [dragging, setDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [expandedHeight, setExpandedHeight] = useState(500);
@@ -192,6 +201,20 @@ export function PanelDrawer({ sections, article: _article }: Props) {
                 ? "Live Data"
                 : `${sections.length} live data panels`}
           </span>
+          {open && activeId && (
+            <button
+              className="intel-drawer-share"
+              onClick={(e) => {
+                e.stopPropagation();
+                const url = new URL(window.location.href);
+                url.searchParams.set("panel", activeId);
+                navigator.clipboard.writeText(url.toString()).catch(() => {});
+              }}
+              title="Share this analysis"
+            >
+              ⤳
+            </button>
+          )}
           <span className="intel-drawer-chevron" aria-hidden="true">
             {open ? "↓" : "↑"}
           </span>

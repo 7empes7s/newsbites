@@ -9,6 +9,10 @@ tags:
   - "east"
   - "live"
 status: "published"
+panel_hints:
+  country_codes:
+    - IR
+    - IL
 lead: "UN chief urges US and Iran to extend ceasefire, calling for respect for international law and navigation rights in Strait of Hormuz."
 digest: "UN chief urges US and Iran to extend ceasefire and respect international law in Strait of Hormuz."
 coverImage: ""

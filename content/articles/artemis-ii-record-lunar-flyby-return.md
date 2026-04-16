@@ -11,6 +11,8 @@ tags:
   - "jeremy-hansen"
   - "spaceflight"
 status: "approved"
+panel_hints:
+  nasa_mission: "Artemis II"
 lead: "NASA's Artemis II crew splashed down on April 10 after flying farther from Earth than any humans before and bringing back the first official moon-flyby images of the Artemis era."
 digest: "Artemis II launched on April 1, flew around the Moon on April 6, set a new human-distance record, and returned safely on April 10."
 coverImage: ""

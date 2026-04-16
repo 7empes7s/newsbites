@@ -9,6 +9,9 @@ tags:
   - "investigating"
   - "claim"
 status: "approved"
+panel_hints:
+  country_codes:
+    - US
 lead: "DHS has launched an investigation into allegations that Rep. Eric Swalwell hired a Brazilian nanny without legal work authorization, according to a claim filed by a conspiracy theorist with a history of controversial actions."
 digest: "DHS investigates claim that Rep. Eric Swalwell hired a Brazilian nanny without work authorization, per a conspiracy theorist."
 coverImage: ""

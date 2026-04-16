@@ -9,6 +9,9 @@ tags:
   - "election"
   - "live"
 status: "approved"
+panel_hints:
+  country_codes:
+    - HU
 lead: "Peter Magyar declared victory in Hungary’s election after early results showed a clear lead, ending Viktor Orbán’s 16-year rule."
 digest: "Hungary’s Viktor Orbán is ousted after 16 years in power as Peter Magyar declares victory."
 coverImage: ""

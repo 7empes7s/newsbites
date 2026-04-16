@@ -4,6 +4,10 @@ export interface PanelConfig<T = unknown> {
   id: string;
   priority: number;
   component: (article: Article) => Promise<React.ReactNode>;
+  cta?: {
+    label: string;
+    href: string;
+  };
 }
 
 export interface ResolvedSection {

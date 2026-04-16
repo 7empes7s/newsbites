@@ -11,7 +11,7 @@ export async function fetchMarketData(symbols: string[] = SYMBOLS): Promise<Mark
     try {
       const url = `${YAHOO_CHART_URL}/${symbol}?interval=1d&range=5d`;
       const response = await fetch(url, {
-        next: { revalidate: 300 },
+        next: { revalidate: 60 },
       });
 
       if (!response.ok) {
@@ -50,7 +50,7 @@ export async function fetchHistoricalData(symbol: string, range = '1mo'): Promis
   try {
     const url = `${YAHOO_CHART_URL}/${symbol}?interval=1d&range=${range}`;
     const response = await fetch(url, {
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {

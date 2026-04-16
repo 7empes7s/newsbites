@@ -9,10 +9,11 @@ type Props = {
   awayWin: number;
   predictedOutcome: 'homeWin' | 'draw' | 'awayWin';
   confidence: 'high' | 'medium' | 'low';
+  warnings?: string[];
 };
 
 export function PronosticWidget({
-  homeTeam, awayTeam, homeWin, draw, awayWin, predictedOutcome, confidence,
+  homeTeam, awayTeam, homeWin, draw, awayWin, predictedOutcome, confidence, warnings = [],
 }: Props) {
   const outcomeLabel =
     predictedOutcome === 'homeWin' ? `${homeTeam} WIN`
@@ -53,6 +54,12 @@ export function PronosticWidget({
           <span className="pronostic-pct">{Math.round(awayWin * 100)}%</span>
         </div>
       </div>
+
+      {warnings.length > 0 && (
+        <ul className="pronostic-warnings">
+          {warnings.map((w, i) => <li key={i}>⚠️ {w}</li>)}
+        </ul>
+      )}
 
       <p className="pronostic-disclaimer">Based on last 5 games + head-to-head record</p>
     </div>

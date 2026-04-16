@@ -9,6 +9,10 @@ tags:
   - "streeting"
   - "attacks"
 status: "approved"
+panel_hints:
+  country_codes:
+    - IR
+    - GB
 lead: "UK health secretary Wes Streeting condemned Donald Trump’s Iran rhetoric as 'incendiary, provocative and outrageous' and called the failure of recent US-Iran peace talks disappointing."
 digest: "UK health secretary Wes Streeting criticizes Trump's Iran rhetoric and calls for continued diplomacy despite failed peace talks."
 coverImage: ""

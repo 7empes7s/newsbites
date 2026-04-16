@@ -221,7 +221,7 @@ export async function fetchF1Standings() {
 - [ ] Phase 37: Writer agent prompt includes `PANEL_HINTS:` output instructions
 - [ ] Phase 37: `publish-dossier.mjs` parses `PANEL_HINTS:` and injects into frontmatter
 - [ ] Phase 38: `warm-panel-cache.mjs` script fetches and stores all panel data on publish
-- [ ] Phase 38: Panel fetchers check cache before making API calls
+- [x] Phase 38: Panel fetchers check cache before making API calls
 - [ ] Phase 39: `calculatePronosticV2` adjusts scores for injured/suspended key players
 - [ ] Phase 39: `PronosticWidget` shows injury warnings below probability bars
 - [ ] Phase 40: `NBAStandingsCard.tsx` shows East/West standings

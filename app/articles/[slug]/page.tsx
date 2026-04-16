@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import { getVerticalLabel } from "@/lib/article-taxonomy";
 import { getAllArticles, getArticleBySlug } from "@/lib/articles";
 import { ArticleIntelPanel } from "@/components/article-panel/ArticleIntelPanel";
+import { ArticleMarketContext } from "@/components/ArticleMarketContext";
 
 export function generateStaticParams() {
   return getAllArticles().map((article) => ({ slug: article.slug }));
@@ -52,6 +53,8 @@ export default async function ArticlePage({
           <div className="prose">
             <Markdown remarkPlugins={[remarkGfm]}>{article.content}</Markdown>
           </div>
+
+          <ArticleMarketContext article={article} />
         </div>
         <aside className="article-sidebar">
           {/* Dynamic intelligence panel — renders when vertical/tags match a registered panel */}

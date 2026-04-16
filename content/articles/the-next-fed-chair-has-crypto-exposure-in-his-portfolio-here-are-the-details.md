@@ -9,6 +9,10 @@ tags:
   - "fed"
   - "chair"
 status: "published"
+panel_hints:
+  tickers:
+    - BTC-USD
+    - ETH-USD
 lead: "The next Federal Reserve chair, Kevin Warsh, has disclosed crypto investments in his financial disclosure, which he has pledged to sell before taking office."
 digest: "Next Fed chair Kevin Warsh has crypto investments he has promised to sell before taking office."
 coverImage: ""
