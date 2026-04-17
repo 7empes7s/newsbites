@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "WHO and France turn One Health into an action agenda at the Lyon summit"
 slug: "who-one-health-summit-lyon-2026"
 date: "2026-04-11"
@@ -16,6 +17,7 @@ digest: "WHO and France used World Health Day week to turn One Health into a mor
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 World Health Day 2026 did not stay at the level of theme and messaging. In
 Lyon, France, the World Health Organization and its partners used the week of

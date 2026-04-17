@@ -40,6 +40,35 @@ export function detectTickerFromArticle(title: string, content: string): TickerM
   return null;
 }
 
+export function getTickerMappingBySymbol(symbol: string): TickerMapping | null {
+  return TICKER_MAP.find((mapping) => mapping.symbol === symbol) ?? null;
+}
+
+export function getArticleTickers(
+  title: string,
+  content: string,
+  panelTickers: string[] = [],
+): TickerMapping[] {
+  const seen = new Set<string>();
+  const collected: TickerMapping[] = [];
+
+  for (const symbol of panelTickers) {
+    const mapping = getTickerMappingBySymbol(symbol);
+    if (mapping && !seen.has(mapping.symbol)) {
+      seen.add(mapping.symbol);
+      collected.push(mapping);
+    }
+  }
+
+  const detected = detectTickerFromArticle(title, content);
+  if (detected && !seen.has(detected.symbol)) {
+    seen.add(detected.symbol);
+    collected.push(detected);
+  }
+
+  return collected;
+}
+
 export function getTickerSymbol(mapping: TickerMapping): string {
   if (mapping.category === 'crypto') {
     return mapping.symbol;

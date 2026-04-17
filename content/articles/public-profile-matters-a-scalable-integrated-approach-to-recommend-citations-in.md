@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  ai_models: []
 title: "Public Profile Matters: A Scalable Integrated Approach to Recommend Citations in the Wild"
 slug: "public-profile-matters-a-scalable-integrated-approach-to-recommend-citations-in"
 date: "2026-04-15"
@@ -14,6 +16,8 @@ digest: "Researchers propose a lightweight, efficient citation recommendation sy
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  ai_models: []
 Researchers have proposed a new citation recommendation system that integrates human citation patterns with semantic information to improve both accuracy and efficiency in scientific communication.
 
 ## What happened

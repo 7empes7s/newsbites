@@ -3,7 +3,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { PanelTabBar } from "./PanelTabBar";
-import type { Article } from "@/lib/articles";
+import { getPanelPrefs, setPanelPrefs, setPinnedTab } from "@/lib/panel-prefs";
+import { PanelSectionShell } from "./PanelSectionShell";
+import { getPanelTitle } from "./panel-section-meta";
 
 interface ResolvedSection {
   id: string;
@@ -14,81 +16,55 @@ interface ResolvedSection {
 const COLLAPSED_HEIGHT = 56;
 const EXPANDED_VH = 0.85;
 
-const PANEL_NAMES: Record<string, string> = {
-  "fda-alerts": "FDA Alerts",
-  "who-bulletin": "WHO Bulletin",
-  "clinical-trials": "Clinical Trials",
-  "co2-widget": "CO₂ Level",
-  "temp-anomaly": "Temperature Anomaly",
-  "renewable-capacity": "Renewable Capacity",
-  "sports-standings": "League Standings",
-  "sports-fixtures": "Upcoming Fixtures",
-  "sports-pronostic": "Match Prediction",
-  "sports-home-team": "Home Team Stats",
-  "sports-away-team": "Away Team Stats",
-  "sports-route-to-final": "Knockout Bracket",
-  "nba-standings": "NBA Standings",
-  "f1-race": "F1 Race",
-  "finance-overview": "Market Overview",
-  "finance-sparkline": "Ticker Data",
-  "macro-indicators": "Macro Indicators",
-  "crypto-panel": "Crypto Prices",
-  "country-profile": "Country Profile",
-  "conflict-timeline": "Conflict Timeline",
-  "election-calendar": "Election Calendar",
-  "trade-data": "Trade Data",
-  "github-repo": "GitHub Repository",
-  "model-leaderboard": "AI Leaderboard",
-  "paper-card": "Research Paper",
-  "tech-signal": "Tech Trends",
-  "launch-tracker": "Space Launches",
-  "apod": "Astronomy Picture",
-  "iss-position": "ISS Position",
-  "mission-status": "Mission Status",
-  "cross-vertical-ticker": "Market Ticker",
-  "cross-vertical-github": "Repository",
-  "tag-ticker": "Market Ticker",
-  "tag-launch": "Space Launches",
-};
-
-function isEmptyFallback(content: React.ReactNode): boolean {
-  if (!content) return true;
-  if (typeof content === "object" && "type" in content) {
-    const c = content as { type?: { name?: string } };
-    return c.type?.name === "PanelEmptyFallback";
-  }
-  return false;
-}
-
-function PanelEmptyFallback({ panelId }: { panelId: string }) {
-  const panelName = PANEL_NAMES[panelId] || panelId.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-  return (
-    <div className="p-4 text-center">
-      <p className="text-sm text-slate-500">We could not find any data in {panelName}.</p>
-      <p className="text-xs text-slate-400 mt-1">Check back later!</p>
-    </div>
-  );
-}
-
 interface Props {
   sections: ResolvedSection[];
-  article: Article;
+  vertical?: string;
+  hiddenSections?: { id: string; title: string }[];
+  onHideSection?: (id: string) => void;
+  onRestoreSection?: (id: string) => void;
 }
 
-export function PanelDrawer({ sections, article: _article, initialPanelId }: Props & { initialPanelId?: string }) {
+export function PanelDrawer({
+  sections,
+  initialPanelId,
+  vertical = "general",
+  hiddenSections = [],
+  onHideSection,
+  onRestoreSection,
+}: Props & { initialPanelId?: string }) {
   const searchParams = useSearchParams();
   const deepLinkPanel = initialPanelId || searchParams.get("panel") || "";
-  const [open, setOpen] = useState(!!deepLinkPanel);
-  const [activeId, setActiveId] = useState(deepLinkPanel && sections.some(s => s.id === deepLinkPanel) ? deepLinkPanel : (sections[0]?.id ?? ""));
+
+  const savedPrefs = typeof window !== "undefined" ? getPanelPrefs() : {};
+  const pinnedTab = savedPrefs.pinnedTab?.[vertical];
+
+  const defaultActive = deepLinkPanel && sections.some(s => s.id === deepLinkPanel)
+    ? deepLinkPanel
+    : (pinnedTab && sections.some(s => s.id === pinnedTab) ? pinnedTab : (sections[0]?.id ?? ""));
+
+  const [open, setOpenState] = useState(!!deepLinkPanel || (pinnedTab === undefined && savedPrefs.defaultExpanded));
+  const [activeId, setActiveId] = useState(defaultActive);
   const [dragging, setDragging] = useState(false);
   const [dragY, setDragY] = useState(0);
   const [expandedHeight, setExpandedHeight] = useState(500);
   const startYRef = useRef(0);
   const startTimeRef = useRef(0);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const verticalRef = useRef(vertical);
 
   useEffect(() => {
     setExpandedHeight(window.innerHeight * EXPANDED_VH);
+  }, []);
+
+  useEffect(() => {
+    if (!sections.some((section) => section.id === activeId)) {
+      setActiveId(sections[0]?.id ?? "");
+    }
+  }, [activeId, sections]);
+
+  const setOpen = useCallback((nextOpen: boolean) => {
+    setOpenState(nextOpen);
+    setPanelPrefs({ defaultExpanded: nextOpen });
   }, []);
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -128,44 +104,6 @@ export function PanelDrawer({ sections, article: _article, initialPanelId }: Pro
     : COLLAPSED_HEIGHT - Math.min(0, dragY);
 
   const activeSection = sections.find((s) => s.id === activeId) ?? sections[0];
-  const activeIsEmpty = activeSection && isEmptyFallback(activeSection.content);
-
-  const getPanelTitle = (id: string): string => {
-    const titles: Record<string, string> = {
-      "fda-alerts": "FDA Alerts",
-      "who-bulletin": "WHO News",
-      "clinical-trials": "Clinical Trials",
-      "co2-widget": "CO₂ Level",
-      "temp-anomaly": "Temperature",
-      "renewable-capacity": "Renewables",
-      "sports-standings": "Standings",
-      "sports-fixtures": "Fixtures",
-      "sports-pronostic": "Prediction",
-      "sports-home-team": "Home Team",
-      "sports-away-team": "Away Team",
-      "sports-route-to-final": "Knockout",
-      "finance-overview": "Finance",
-      "finance-sparkline": "Ticker",
-      "macro-indicators": "Macro",
-      "crypto-panel": "Crypto",
-      "country-profile": "Country",
-      "conflict-timeline": "Conflict",
-      "election-calendar": "Elections",
-      "trade-data": "Trade",
-      "github-repo": "GitHub",
-      "model-leaderboard": "Models",
-      "paper-card": "Paper",
-      "tech-signal": "Tech Signal",
-      "launch-tracker": "Launches",
-      "apod": "Astronomy",
-      "iss-position": "ISS",
-      "mission-status": "Mission",
-    };
-    return titles[id] || id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-  };
-
-  const validTabs = sections.filter((s) => !isEmptyFallback(s.content));
-  const showAllTab = validTabs.length === 0;
 
   return (
     <>
@@ -189,21 +127,20 @@ export function PanelDrawer({ sections, article: _article, initialPanelId }: Pro
       >
         <button
           className="intel-drawer-handle"
-          onClick={() => !dragging && setOpen((v) => !v)}
+          onClick={() => !dragging && setOpen(!open)}
           aria-expanded={open}
           aria-controls="intel-drawer-body"
         >
           <span className="intel-drawer-handle-bar" />
           <span className="intel-drawer-handle-label">
-            {showAllTab
-              ? "No Data"
-              : sections.length === 1
-                ? "Live Data"
-                : `${sections.length} live data panels`}
+            {sections.length === 1
+              ? "Live Data"
+              : `${sections.length} live data panels`}
           </span>
           {open && activeId && (
             <button
               className="intel-drawer-share"
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 const url = new URL(window.location.href);
@@ -222,24 +159,47 @@ export function PanelDrawer({ sections, article: _article, initialPanelId }: Pro
 
         <div id="intel-drawer-body" className="intel-drawer-body" hidden={!open}>
           <PanelTabBar
-            tabs={showAllTab ? [{ id: "empty", title: "No Data" }] : sections.map((s) => ({
+            tabs={sections.map((s) => ({
               id: s.id,
               title: getPanelTitle(s.id),
             }))}
-            activeId={showAllTab ? "empty" : activeId}
-            onSelect={showAllTab ? () => {} : setActiveId}
+            activeId={activeId}
+            onSelect={(id) => {
+              setActiveId(id);
+              setPinnedTab(verticalRef.current, id);
+            }}
           />
-          <div className="intel-drawer-content">
-            {showAllTab ? (
-              <div className="p-4 text-center">
-                <p className="text-sm text-slate-500">No live data available for this article.</p>
-                <p className="text-xs text-slate-400 mt-1">Check back later!</p>
+          {hiddenSections.length > 0 ? (
+            <div className="panel-hidden-strip panel-hidden-strip-mobile">
+              <span className="panel-hidden-strip-label">Hidden sections</span>
+              <div className="panel-hidden-strip-actions">
+                {hiddenSections.map((section) => (
+                  <button
+                    key={section.id}
+                    className="panel-hidden-chip"
+                    type="button"
+                    onClick={() => onRestoreSection?.(section.id)}
+                  >
+                    Show {section.title}
+                  </button>
+                ))}
               </div>
-            ) : activeIsEmpty ? (
-              <PanelEmptyFallback panelId={activeSection.id} />
-            ) : (
-              activeSection?.content
-            )}
+            </div>
+          ) : null}
+          <div className="intel-drawer-content">
+            {activeSection ? (
+              <PanelSectionShell
+                title={getPanelTitle(activeSection.id)}
+                canHide={Boolean(onHideSection) && sections.length > 1}
+                onHide={
+                  onHideSection
+                    ? () => onHideSection(activeSection.id)
+                    : undefined
+                }
+              >
+                {activeSection.content}
+              </PanelSectionShell>
+            ) : null}
           </div>
         </div>
       </div>

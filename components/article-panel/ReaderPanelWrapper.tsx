@@ -11,7 +11,7 @@ export async function ReaderPanelWrapper({ article, maxSections = 3 }: Props) {
   const configs = getPanelSections(article);
   
   if (configs.length === 0) {
-    return <PanelRenderer sections={[]} loading={false} />;
+    return null;
   }
 
   const sections: { id: string; content: React.ReactNode }[] = [];
@@ -25,6 +25,9 @@ export async function ReaderPanelWrapper({ article, maxSections = 3 }: Props) {
     } catch (error) {
       console.error(`Error loading panel ${config.id}:`, error);
     }
+  }
+  if (sections.length === 0) {
+    return null;
   }
 
   return <PanelRenderer sections={sections} loading={false} />;

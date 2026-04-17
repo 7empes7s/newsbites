@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  country_codes: []
 title: "Former NSW MP spruiked as ‘esteemed’ Liberal at campaign event – despite Icac’s ‘serious corrupt conduct’ finding"
 slug: "former-nsw-mp-spruiked-as-esteemed-liberal-at-campaign-event-despite-icacs-serio"
 date: "2026-04-16"
@@ -14,6 +16,8 @@ digest: "A former NSW MP with a corruption finding was praised at a Liberal camp
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  country_codes: []
 A former New South Wales MP found by the Independent Commission Against Corruption (Icac) to have engaged in serious corrupt conduct was celebrated at a Liberal Party campaign event, despite his history of allegations.
 
 ## What happened

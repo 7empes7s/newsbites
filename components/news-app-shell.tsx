@@ -16,6 +16,9 @@ import {
   type Group,
 } from "@/lib/article-taxonomy";
 import type { Article } from "@/lib/articles";
+import { getSubscriptions } from "@/lib/subscriptions";
+import { AppArticleIntelPanel } from "@/components/article-panel/AppArticleIntelPanel";
+import { AppPanelTop } from "@/components/article-panel/AppPanelTop";
 
 type AppArticle = Pick<
   Article,
@@ -111,11 +114,20 @@ function getInitialState(
   wantsRandom: boolean,
   groups: Group[],
 ) {
-  const nextFilter: FilterValue = isActiveGroup(queryGroup, groups)
-    ? queryGroup
-    : queryGroup === "favorites"
-    ? "favorites"
-    : "all";
+  const subs = typeof window !== "undefined" ? getSubscriptions() : null;
+  const subscribedVerticals = subs?.verticals ?? [];
+  
+  let nextFilter: FilterValue;
+  if (queryGroup && isActiveGroup(queryGroup, groups)) {
+    nextFilter = queryGroup;
+  } else if (queryGroup === "favorites") {
+    nextFilter = "favorites";
+  } else if (subscribedVerticals.length > 0 && !queryGroup) {
+    const subGroups = subscribedVerticals.map(v => getGroupForVertical(v)).filter((g): g is Group => Boolean(g));
+    nextFilter = subGroups.length > 0 ? subGroups[0] : "all";
+  } else {
+    nextFilter = "all";
+  }
 
   const nextVisible =
     nextFilter === "all" || nextFilter === "favorites"
@@ -528,210 +540,257 @@ export function NewsAppShell({
         )}
       </div>
 
-      {/* Article card — fills remaining space */}
-      <div className="nb-article-area">
-        {displayArticles.length === 0 ? (
-          <div className="nb-empty">
-            <p>
-              {hasSearchNoResults
-                ? `No matches for "${trimmedSearchQuery}".`
-                : activeFilter === "favorites"
-                ? "No favourites yet — tap ♡ on any article to save it."
-                : "No articles in this category."}
-            </p>
-          </div>
-        ) : activeArticle ? (
-          <article className="nb-card" key={activeArticle.slug}>
-            <div className="nb-card-body">
-              <p className="nb-card-meta">
-                {getVerticalLabel(activeArticle.vertical)} · {activeArticle.dateLabel} · {activeArticle.readingTime}
-              </p>
-              <h2 className="nb-card-title">{activeArticle.appDigest.headline}</h2>
-              <p className="nb-card-lead">{activeArticle.appDigest.nutshell}</p>
-              <div className="nb-digest">
-                {activeArticle.appDigest.sections.map((section) => (
-                  <div key={section.title} className="nb-digest-block">
-                    <p className="nb-digest-label">{section.title}</p>
-                    <p className="nb-digest-text">{section.summary}</p>
-                  </div>
-                ))}
-                <div className="nb-digest-block nb-digest-takeaway">
-                  <p className="nb-digest-label">Why it matters</p>
-                  <p className="nb-digest-text">{activeArticle.appDigest.takeaway}</p>
-                </div>
+      {/* Body: article column (left) + panel column (right, desktop/tablet only) */}
+      <div className="nb-body">
+        <div className="nb-article-col">
+          {/* Live data strip — mobile only */}
+          {activeArticle && <AppPanelTop slug={activeArticle.slug} />}
+
+          {/* Article card — fills remaining space */}
+          <div className="nb-article-area">
+            {displayArticles.length === 0 ? (
+              <div className="nb-empty">
+                <p>
+                  {hasSearchNoResults
+                    ? `No matches for "${trimmedSearchQuery}".`
+                    : activeFilter === "favorites"
+                    ? "No favourites yet — tap ♡ on any article to save it."
+                    : "No articles in this category."}
+                </p>
               </div>
-            </div>
-            {activeArticle.coverImage ? (
-              <div
-                className="nb-image-slot nb-image-slot-filled"
-                aria-hidden="true"
-                style={{ backgroundImage: `url("${activeArticle.coverImage}")` }}
-              />
+            ) : activeArticle ? (
+              <article className="nb-card" key={activeArticle.slug}>
+                <div className="nb-card-body">
+                  <p className="nb-card-meta">
+                    {getVerticalLabel(activeArticle.vertical)} · {activeArticle.dateLabel} · {activeArticle.readingTime}
+                  </p>
+                  <h2 className="nb-card-title">{activeArticle.appDigest.headline}</h2>
+                  <p className="nb-card-lead">{activeArticle.appDigest.nutshell}</p>
+                  <div className="nb-card-aside">
+                    <div className="nb-digest">
+                      {activeArticle.appDigest.sections.map((section) => (
+                        <div key={section.title} className="nb-digest-block">
+                          <p className="nb-digest-label">{section.title}</p>
+                          <p className="nb-digest-text">{section.summary}</p>
+                        </div>
+                      ))}
+                      <div className="nb-digest-block nb-digest-takeaway">
+                        <p className="nb-digest-label">Why it matters</p>
+                        <p className="nb-digest-text">{activeArticle.appDigest.takeaway}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {activeArticle.coverImage ? (
+                  <div
+                    className="nb-image-slot nb-image-slot-filled"
+                    aria-hidden="true"
+                    style={{ backgroundImage: `url("${activeArticle.coverImage}")` }}
+                  />
+                ) : null}
+                <div className="nb-card-footer">
+                  <Link className="nb-btn-read" href={getArticleHref(activeArticle.slug)}>
+                    Read full article →
+                  </Link>
+                  <button
+                    className={isFav(activeArticle.slug) ? "nb-btn-fav nb-btn-fav-active" : "nb-btn-fav"}
+                    type="button"
+                    aria-label={isFav(activeArticle.slug) ? "Remove from favourites" : "Add to favourites"}
+                    onClick={() => toggleFavorite(activeArticle.slug)}
+                  >
+                    {isFav(activeArticle.slug) ? "♥" : "♡"}
+                  </button>
+                </div>
+              </article>
             ) : null}
-            <div className="nb-card-footer">
-              <Link className="nb-btn-read" href={getArticleHref(activeArticle.slug)}>
-                Read full article →
-              </Link>
-              <button
-                className={isFav(activeArticle.slug) ? "nb-btn-fav nb-btn-fav-active" : "nb-btn-fav"}
-                type="button"
-                aria-label={isFav(activeArticle.slug) ? "Remove from favourites" : "Add to favourites"}
-                onClick={() => toggleFavorite(activeArticle.slug)}
-              >
-                {isFav(activeArticle.slug) ? "♥" : "♡"}
-              </button>
-            </div>
-          </article>
-        ) : null}
+          </div>
+        </div>
+
+        {/* Panel column — visible on desktop/tablet, hidden on mobile */}
+        <div className="nb-panel-col">
+          {activeArticle && (
+            <AppArticleIntelPanel
+              slug={activeArticle.slug}
+              showDesktop
+              showSpacer={false}
+            />
+          )}
+        </div>
       </div>
     </>
   );
 
   // ── Render: Flow Mode ──
   const renderFlowMode = () => (
-    <>
-      {/* Floating logo + menu button — top right */}
-      <div className="nb-flow-header">
-        <button
-          className="nb-flow-logo"
-          type="button"
-          onClick={() => { setMenuOpen((c) => !c); }}
-          aria-label="Open menu"
-        >
-          <span className="nb-flow-logo-emblem">NB</span>
-          <span className="nb-flow-logo-text">NewsBites</span>
-          <span className="nb-flow-logo-menu">{menuOpen ? "✕" : "☰"}</span>
-        </button>
-        <span className="nb-flow-counter" aria-live="polite">
-          {displayArticles.length > 0 ? `${activeIndex + 1} / ${displayArticles.length}` : "—"}
-        </span>
-      </div>
-
-      {/* Flow overlay menu — same expanded panel as focus mode */}
-      {menuOpen && (
-        <div className="nb-flow-menu-overlay">
-          <div className="nb-menu-section">
-            <span className="nb-menu-label">Filter</span>
-            <div className="nb-chip-row">
-              {filterOptions.map((option) => (
-                <button
-                  key={option}
-                  className={option === activeFilter ? "nb-chip nb-chip-active" : "nb-chip"}
-                  type="button"
-                  onClick={() => { setFilter(option); setMenuOpen(false); }}
-                >
-                  {filterLabel(option)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="nb-menu-divider" />
-          <div className="nb-menu-section">
-            <span className="nb-menu-label">Mode</span>
-            <div className="nb-chip-row">
-              <button
-                className="nb-chip"
-                type="button"
-                onClick={() => setMode("focus")}
-              >
-                Focus ◫
-              </button>
-              <button className="nb-chip nb-chip-active" type="button" disabled>
-                Flow ↕
-              </button>
-            </div>
-          </div>
-          <div className="nb-menu-divider" />
-          <div className="nb-menu-section">
-            <div className="nb-chip-row">
-              <Link className="nb-chip" href="/">Home</Link>
-              <Link className="nb-chip" href="/about">About</Link>
-            </div>
-          </div>
-          <div className="nb-menu-divider" />
-          <div className="nb-menu-section">
-            <div className="nb-chip-row">
-              <button className="nb-chip" type="button" onClick={() => { jumpRandom(); setMenuOpen(false); }}>
-                ⟳ Surprise me
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Flow feed — full screen snapping cards */}
-      <div
-        className="nb-flow-feed"
-        ref={flowFeedRef}
-        onTouchStart={handleFlowTouchStart}
-        onTouchEnd={handleFlowTouchEnd}
-      >
-        {displayArticles.length === 0 ? (
-          <div className="nb-empty nb-empty-flow">
-            <p>
-              {hasSearchNoResults
-                ? `No matches for "${trimmedSearchQuery}".`
-                : activeFilter === "favorites"
-                ? "No favourites yet — tap ♡ on any article to save it."
-                : "No articles in this category."}
-            </p>
-          </div>
-        ) : (
-          <div
-            className={isFlowAnimating ? "nb-flow-track nb-flow-animating" : "nb-flow-track"}
-            style={{ transform: `translate3d(0, -${flowPosition * flowViewportHeight}px, 0)` }}
+    <div className="nb-flow-body">
+      {/* Flow column (left): feed + floating overlays */}
+      <div className="nb-flow-col">
+        {/* Floating logo + menu button — top right of flow column */}
+        <div className="nb-flow-header">
+          <button
+            className="nb-flow-logo"
+            type="button"
+            onClick={() => { setMenuOpen((c) => !c); }}
+            aria-label="Open menu"
           >
-            {flowEntries.map(({ article, key }) => (
-              <div
-                key={key}
-                className="nb-flow-card"
-                style={flowViewportHeight ? { height: `${flowViewportHeight}px` } : undefined}
-              >
-                <div className="nb-flow-card-inner">
-                  <div className="nb-flow-card-body">
-                    <p className="nb-card-meta nb-card-meta-flow">
-                      {getVerticalLabel(article.vertical)} · {article.dateLabel} · {article.readingTime}
-                    </p>
-                    <h2 className="nb-card-title nb-card-title-flow">{article.appDigest.headline}</h2>
-                    <p className="nb-card-lead nb-card-lead-flow">{article.appDigest.nutshell}</p>
-                    <div className="nb-digest nb-digest-flow">
-                      {article.appDigest.sections.map((section) => (
-                        <div key={`${key}-${section.title}`} className="nb-digest-block nb-digest-block-flow">
-                          <p className="nb-digest-label">{section.title}</p>
-                          <p className="nb-digest-text">{section.summary}</p>
-                        </div>
-                      ))}
-                      <div className="nb-digest-block nb-digest-block-flow nb-digest-takeaway-flow">
-                        <p className="nb-digest-label">Why it matters</p>
-                        <p className="nb-digest-text">{article.appDigest.takeaway}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="nb-flow-card-footer">
-                    <Link className="nb-btn-read nb-btn-read-flow" href={getArticleHref(article.slug)}>
-                      Read full article →
-                    </Link>
-                    <button
-                      className={isFav(article.slug) ? "nb-btn-fav nb-btn-fav-flow nb-btn-fav-active" : "nb-btn-fav nb-btn-fav-flow"}
-                      type="button"
-                      aria-label={isFav(article.slug) ? "Remove from favourites" : "Add to favourites"}
-                      onClick={() => toggleFavorite(article.slug)}
-                    >
-                      {isFav(article.slug) ? "♥" : "♡"}
-                    </button>
-                  </div>
-                </div>
+            <span className="nb-flow-logo-emblem">NB</span>
+            <span className="nb-flow-logo-text">NewsBites</span>
+            <span className="nb-flow-logo-menu">{menuOpen ? "✕" : "☰"}</span>
+          </button>
+          <span className="nb-flow-counter" aria-live="polite">
+            {displayArticles.length > 0 ? `${activeIndex + 1} / ${displayArticles.length}` : "—"}
+          </span>
+        </div>
+
+        {/* Flow overlay menu — same expanded panel as focus mode */}
+        {menuOpen && (
+          <div className="nb-flow-menu-overlay">
+            <div className="nb-menu-section">
+              <span className="nb-menu-label">Filter</span>
+              <div className="nb-chip-row">
+                {filterOptions.map((option) => (
+                  <button
+                    key={option}
+                    className={option === activeFilter ? "nb-chip nb-chip-active" : "nb-chip"}
+                    type="button"
+                    onClick={() => { setFilter(option); setMenuOpen(false); }}
+                  >
+                    {filterLabel(option)}
+                  </button>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="nb-menu-divider" />
+            <div className="nb-menu-section">
+              <span className="nb-menu-label">Mode</span>
+              <div className="nb-chip-row">
+                <button
+                  className="nb-chip"
+                  type="button"
+                  onClick={() => setMode("focus")}
+                >
+                  Focus ◫
+                </button>
+                <button className="nb-chip nb-chip-active" type="button" disabled>
+                  Flow ↕
+                </button>
+              </div>
+            </div>
+            <div className="nb-menu-divider" />
+            <div className="nb-menu-section">
+              <div className="nb-chip-row">
+                <Link className="nb-chip" href="/">Home</Link>
+                <Link className="nb-chip" href="/about">About</Link>
+              </div>
+            </div>
+            <div className="nb-menu-divider" />
+            <div className="nb-menu-section">
+              <div className="nb-chip-row">
+                <button className="nb-chip" type="button" onClick={() => { jumpRandom(); setMenuOpen(false); }}>
+                  ⟳ Surprise me
+                </button>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* Panel strip — mobile only, collapsed by default */}
+        {activeArticle && (
+          <div
+            className="nb-flow-panel-strip"
+            onWheel={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
+            <AppPanelTop slug={activeArticle.slug} />
+          </div>
+        )}
+
+        {/* Flow feed — full-height snapping cards */}
+        <div
+          className="nb-flow-feed"
+          ref={flowFeedRef}
+          onTouchStart={handleFlowTouchStart}
+          onTouchEnd={handleFlowTouchEnd}
+        >
+          {displayArticles.length === 0 ? (
+            <div className="nb-empty nb-empty-flow">
+              <p>
+                {hasSearchNoResults
+                  ? `No matches for "${trimmedSearchQuery}".`
+                  : activeFilter === "favorites"
+                  ? "No favourites yet — tap ♡ on any article to save it."
+                  : "No articles in this category."}
+              </p>
+            </div>
+          ) : (
+            <div
+              className={isFlowAnimating ? "nb-flow-track nb-flow-animating" : "nb-flow-track"}
+              style={{ transform: `translate3d(0, -${flowPosition * flowViewportHeight}px, 0)` }}
+            >
+              {flowEntries.map(({ article, key }) => (
+                <div
+                  key={key}
+                  className="nb-flow-card"
+                  style={flowViewportHeight ? { height: `${flowViewportHeight}px` } : undefined}
+                >
+                  <div className="nb-flow-card-inner">
+                    <div className="nb-flow-card-body">
+                      <p className="nb-card-meta nb-card-meta-flow">
+                        {getVerticalLabel(article.vertical)} · {article.dateLabel} · {article.readingTime}
+                      </p>
+                      <h2 className="nb-card-title nb-card-title-flow">{article.appDigest.headline}</h2>
+                      <p className="nb-card-lead nb-card-lead-flow">{article.appDigest.nutshell}</p>
+                      <div className="nb-digest nb-digest-flow">
+                        {article.appDigest.sections.map((section) => (
+                          <div key={`${key}-${section.title}`} className="nb-digest-block nb-digest-block-flow">
+                            <p className="nb-digest-label">{section.title}</p>
+                            <p className="nb-digest-text">{section.summary}</p>
+                          </div>
+                        ))}
+                        <div className="nb-digest-block nb-digest-block-flow nb-digest-takeaway-flow">
+                          <p className="nb-digest-label">Why it matters</p>
+                          <p className="nb-digest-text">{article.appDigest.takeaway}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="nb-flow-card-footer">
+                      <Link className="nb-btn-read nb-btn-read-flow" href={getArticleHref(article.slug)}>
+                        Read full article →
+                      </Link>
+                      <button
+                        className={isFav(article.slug) ? "nb-btn-fav nb-btn-fav-flow nb-btn-fav-active" : "nb-btn-fav nb-btn-fav-flow"}
+                        type="button"
+                        aria-label={isFav(article.slug) ? "Remove from favourites" : "Add to favourites"}
+                        onClick={() => toggleFavorite(article.slug)}
+                      >
+                        {isFav(article.slug) ? "♥" : "♡"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Flow nav hint */}
+        <div className="nb-flow-hint">
+          <span>↕ Scroll for next</span>
+        </div>
       </div>
 
-      {/* Flow nav hint */}
-      <div className="nb-flow-hint">
-        <span>↕ Scroll for next</span>
+      {/* Panel column — visible on desktop/tablet, hidden on mobile */}
+      <div className="nb-panel-col nb-panel-col-flow">
+        {activeArticle && (
+          <AppArticleIntelPanel
+            slug={activeArticle.slug}
+            showDesktop
+            showSpacer={false}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 
   return (

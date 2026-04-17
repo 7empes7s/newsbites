@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
 export interface CountryProfile {
   name: { common: string; official: string };
   flags: { png: string; svg: string; alt?: string };
@@ -9,18 +12,37 @@ export interface CountryProfile {
   cca3: string;
 }
 
-export async function fetchCountryProfile(countryCode: string): Promise<CountryProfile | null> {
+const WORLD_FETCH_TIMEOUT_MS = 2000;
+const PANELS_DIRECTORY = path.join(process.cwd(), "content/panels");
+
+async function fetchJsonWithTimeout<T>(url: string, revalidate: number): Promise<T | null> {
   try {
-    const res = await fetch(
-      `https://restcountries.com/v3.1/alpha/${countryCode}?fields=name,flags,capital,population,region,currencies,languages,cca3`,
-      { next: { revalidate: 86400 } }
-    );
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(WORLD_FETCH_TIMEOUT_MS),
+      next: { revalidate },
+    });
     if (!res.ok) return null;
-    return res.json();
-  } catch (error) {
-    console.error(`Error fetching country profile for ${countryCode}:`, error);
+    return (await res.json()) as T;
+  } catch {
     return null;
   }
+}
+
+async function readPanelJson<T>(fileName: string): Promise<T | null> {
+  try {
+    const filePath = path.join(PANELS_DIRECTORY, fileName);
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchCountryProfile(countryCode: string): Promise<CountryProfile | null> {
+  return fetchJsonWithTimeout<CountryProfile>(
+    `https://restcountries.com/v3.1/alpha/${countryCode}?fields=name,flags,capital,population,region,currencies,languages,cca3`,
+    86400,
+  );
 }
 
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
@@ -65,17 +87,10 @@ export function detectCountryCodes(
 }
 
 export async function fetchTradeData(countryCode: string): Promise<unknown> {
-  try {
-    const res = await fetch(
-      `https://api.worldbank.org/v2/country/${countryCode}/indicator/NE.TRD.GNFS.ZS?format=json&per_page=5`,
-      { next: { revalidate: 86400 } }
-    );
-    if (!res.ok) return null;
-    return res.json();
-  } catch (error) {
-    console.error(`Error fetching trade data for ${countryCode}:`, error);
-    return null;
-  }
+  return fetchJsonWithTimeout<unknown>(
+    `https://api.worldbank.org/v2/country/${countryCode}/indicator/NE.TRD.GNFS.ZS?format=json&per_page=5`,
+    86400,
+  );
 }
 
 export interface ConflictEvent {
@@ -91,16 +106,14 @@ export interface ActiveConflict {
 }
 
 export async function fetchActiveConflicts(countryCodes: string[]): Promise<ActiveConflict[]> {
-  try {
-    const res = await fetch("/content/panels/active-conflicts.json", { next: { revalidate: 3600 } });
-    if (!res.ok) return [];
-    const conflicts: ActiveConflict[] = await res.json();
-    return conflicts.filter((c) =>
-      c.countryCodes.some((cc) => countryCodes.includes(cc))
-    );
-  } catch {
+  const conflicts = await readPanelJson<ActiveConflict[]>("active-conflicts.json");
+  if (!conflicts) {
     return [];
   }
+
+  return conflicts.filter((conflict) =>
+    conflict.countryCodes.some((countryCode) => countryCodes.includes(countryCode)),
+  );
 }
 
 export interface Election {
@@ -112,20 +125,19 @@ export interface Election {
 }
 
 export async function fetchUpcomingElections(countryCodes: string[]): Promise<Election[]> {
-  try {
-    const res = await fetch("/content/panels/election-calendar.json", { next: { revalidate: 86400 } });
-    if (!res.ok) return [];
-    const elections: Election[] = await res.json();
-    const now = new Date();
-    const ninetyDaysFromNow = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
-    return elections
-      .filter((e) => countryCodes.includes(e.countryCode))
-      .filter((e) => {
-        const electionDate = new Date(e.date);
-        return electionDate >= now && electionDate <= ninetyDaysFromNow;
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  } catch {
+  const elections = await readPanelJson<Election[]>("election-calendar.json");
+  if (!elections) {
     return [];
   }
+
+  const now = new Date();
+  const ninetyDaysFromNow = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+
+  return elections
+    .filter((election) => countryCodes.includes(election.countryCode))
+    .filter((election) => {
+      const electionDate = new Date(election.date);
+      return electionDate >= now && electionDate <= ninetyDaysFromNow;
+    })
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

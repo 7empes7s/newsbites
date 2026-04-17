@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "Lilly's oral GLP-1 Foundayo starts its US rollout after fast FDA approval"
 slug: "foundayo-oral-glp-1-us-rollout"
 date: "2026-04-11"
@@ -16,6 +17,7 @@ digest: "Lilly's new daily weight-loss pill is now reaching US patients after on
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 On April 9, 2026, Eli Lilly said Foundayo is now available in the United
 States. The announcement came just over a week after the U.S. Food and Drug

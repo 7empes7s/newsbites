@@ -1,4 +1,9 @@
+"use client";
+
 // components/panels/sports/TeamMiniCard.tsx
+
+import { useMemo } from "react";
+import { getSubscriptions } from "@/lib/subscriptions";
 
 type FormResult = 'W' | 'D' | 'L';
 
@@ -15,10 +20,21 @@ export function TeamMiniCard({ teamName, teamCrest, position, form = [] }: Props
     D: '#94a3b8',
     L: '#ef4444',
   };
+  const isSubscribedTeam = useMemo(
+    () =>
+      getSubscriptions()
+        .teams.some((team) => teamName.toLowerCase().includes(team.toLowerCase())),
+    [teamName],
+  );
 
   return (
     <div className="panel-section">
-      <h3 className="panel-section-title">{teamName}</h3>
+      <h3 className="panel-section-title">
+        {teamName}
+        {isSubscribedTeam ? (
+          <span className="team-mini-subscription">Subscribed</span>
+        ) : null}
+      </h3>
       <div className="team-mini-card">
         <div className="team-mini-header">
           {teamCrest && (

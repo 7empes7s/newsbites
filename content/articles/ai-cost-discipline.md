@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  ai_models: []
 title: "Why cost discipline is the first real AI product feature"
 slug: "ai-cost-discipline"
 date: "2026-04-05"
@@ -13,6 +15,8 @@ digest: "Most AI products don't fail because the model is weak — they fail bec
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  ai_models: []
 
 ## The actual constraint
 

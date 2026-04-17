@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  ai_models: []
 title: "Adaptive Rigor in AI System Evaluation using Temperature-Controlled Verdict Aggregation via Generalized Power Mean"
 slug: "adaptive-rigor-in-ai-system-evaluation-using-temperature-controlled-verdict-aggr"
 date: "2026-04-13"
@@ -14,6 +16,8 @@ digest: "Researchers propose a new AI evaluation method that adjusts rigor via a
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  ai_models: []
 Researchers have introduced a method called Temperature-Controlled Verdict Aggregation (TCVA) for adaptive AI system evaluation, which adjusts evaluation rigor based on application domains. The method uses a generalized power-mean aggregation and a temperature parameter T, ranging from 0.1 to 1.0. Low temperatures yield pessimistic scores suitable for safety-critical domains, while high temperatures produce lenient scores for conversational AI.
 
 ## What happened

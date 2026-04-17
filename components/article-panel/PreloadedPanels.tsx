@@ -6,11 +6,7 @@ interface Props {
 
 export function PreloadedPanels({ panels }: Props) {
   if (!panels || panels.length === 0) {
-    return (
-      <div className="nb-panel-inline">
-        <p className="nb-panel-empty">No data available</p>
-      </div>
-    );
+    return null;
   }
 
   return (

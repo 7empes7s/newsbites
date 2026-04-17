@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { ArticleCard } from "@/components/article-card";
 import {
   getGroupLabel,
@@ -12,6 +13,19 @@ import {
   getArticlesByGroup,
   getVerticalsInGroup,
 } from "@/lib/articles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ group: string }>;
+}): Promise<Metadata> {
+  const { group } = await params;
+  const label = getGroupLabel(group as Group);
+  return {
+    title: `${label} | NewsBites`,
+    description: `Latest stories in ${label}. NewsBites covers technology, finance, world, science, wellness, and culture with sharp, readable briefings.`,
+  };
+}
 
 export function generateStaticParams() {
   return getAllGroups().map((group) => ({ group }));

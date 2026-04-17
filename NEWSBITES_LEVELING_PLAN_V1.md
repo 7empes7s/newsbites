@@ -963,6 +963,23 @@ Before any code is written, these must be in place:
 
 ---
 
+## Progress Log
+
+### 2026-04-17
+
+- Audited the implementation against the V1 contract and corrected three gaps in the live app:
+  silent panel fallback, sports panel over-registration, and the desktop article rail width/behavior.
+- `ArticleIntelPanel` and related reader-panel helpers now hide unavailable panel sections instead of surfacing visible empty-state cards, aligning with the V1 graceful-degradation rule.
+- Sports registration was split by signal type:
+  football panels register only for football-specific hints/tags,
+  NBA panels only for NBA/basketball tags,
+  F1 panels only for F1/formula tags.
+- Article layout CSS now uses a `320px` desktop sidebar column with sticky behavior at desktop widths while preserving the current site styling framework and mobile drawer behavior.
+- Production verification completed after rebuild/restart:
+  the Champions League semi-final article now serves only the relevant football sections on the live app process.
+
+---
+
 *This document is the execution contract for the Intelligence Layer build-out.*  
 *Update the tracker table as phases complete. Append blockers inline in the relevant phase section.*  
 *When all 52 phases are done, the V2 scoping in Phase 52 becomes the next document.*

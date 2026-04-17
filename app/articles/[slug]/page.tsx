@@ -1,11 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getVerticalLabel } from "@/lib/article-taxonomy";
 import { getAllArticles, getArticleBySlug } from "@/lib/articles";
 import { ArticleIntelPanel } from "@/components/article-panel/ArticleIntelPanel";
 import { ArticleMarketContext } from "@/components/ArticleMarketContext";
+import { ArticleJsonLd } from "@/components/ArticleJsonLd";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const article = getArticleBySlug(slug);
+  if (!article) return { title: "Not Found" };
+
+  return {
+    title: `${article.title} | NewsBites`,
+    description: article.lead,
+    openGraph: {
+      title: article.title,
+      description: article.lead,
+      type: "article",
+      publishedTime: article.date,
+      authors: [article.author],
+      tags: article.tags,
+      siteName: "NewsBites — TechInsiderBytes",
+      images: [{ url: `/articles/${slug}/opengraph-image`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.lead,
+    },
+  };
+}
 
 export function generateStaticParams() {
   return getAllArticles().map((article) => ({ slug: article.slug }));
@@ -41,6 +73,7 @@ export default async function ArticlePage({
 
   return (
     <main className="page-shell">
+      <ArticleJsonLd article={article} />
       <article className="article-page">
         <div className="article-content">
           <p className="article-meta">

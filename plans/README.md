@@ -51,6 +51,7 @@ These phases add live data panels alongside every article (sports standings, sto
 | [v1-11-mobile-reader.md](v1-11-mobile-reader.md) | 33–36 | Gesture drawer, tab bar, Focus/Flow mode panel integration |
 | [v1-12-editorial-pronostics.md](v1-12-editorial-pronostics.md) | 37–40 | Writer agent hints, cache warming, injuries, NBA + F1 |
 | [v1-13-dashboards-polish.md](v1-13-dashboards-polish.md) | 41–52 | Finance CTA, sports dashboard, ISR audit, cross-vertical, personalization, deep links, final audit |
+| [v1-13b-carryover.md](v1-13b-carryover.md) | Follow-up | Unfinished `v1-13` scope: sports dashboard gaps, panel prefs wiring, subscriptions, final audit |
 
 ### V2 — The Production Layer (Phases 53–106)
 These phases make the platform production-grade: SEO, search, dark mode, PWA, testing, monitoring, etc.

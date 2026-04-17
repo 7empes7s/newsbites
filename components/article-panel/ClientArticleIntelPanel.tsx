@@ -67,11 +67,7 @@ export function ClientArticleIntelPanel({ article }: Props) {
   }
 
   if (!content) {
-    return (
-      <div className="nb-panel-inline">
-        <p className="nb-panel-empty">No data available</p>
-      </div>
-    );
+    return null;
   }
 
   return (

@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "NewsBites",
   description:
     "Simple news with an editorial pulse. NewsBites turns complex stories into sharp, readable briefings across technology, business, politics, culture, sport, and more.",
+  metadataBase: new URL("https://news.techinsiderbytes.com"),
+  alternates: {
+    types: { "application/rss+xml": "https://news.techinsiderbytes.com/feed.xml" },
+  },
 };
 
 export const viewport: Viewport = {
@@ -32,11 +36,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const groups = getAllGroups();
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "NewsBites — TechInsiderBytes",
+    url: "https://news.techinsiderbytes.com",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: "https://news.techinsiderbytes.com/search?q={search_term_string}" },
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html
       lang="en"
       className={`${bodyFont.variable} ${displayFont.variable}`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+      </head>
       <body>
         <div className="site-backdrop" aria-hidden="true">
           <div className="site-orb site-orb-left" />

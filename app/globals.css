@@ -1053,7 +1053,7 @@ html.nb-flow-lock {
 
 .article-page {
   display: grid;
-  grid-template-columns: minmax(0, 2.15fr) minmax(260px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 28px;
 }
 
@@ -1077,6 +1077,7 @@ html.nb-flow-lock {
   flex-direction: column;
   gap: 16px;
   padding-top: 8px;
+  align-self: start;
 }
 
 .sidebar-panel {
@@ -1120,6 +1121,16 @@ html.nb-flow-lock {
   gap: 12px;
 }
 
+@media (min-width: 981px) {
+  .article-sidebar {
+    position: sticky;
+    top: 96px;
+    max-height: calc(100svh - 120px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
+
 .intel-panel-section {
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -1147,6 +1158,86 @@ html.nb-flow-lock {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--ink-soft);
+}
+
+.panel-section-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.panel-section-shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-section-shell-title {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.panel-section-shell-action {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.panel-section-shell-action:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.panel-section-shell .panel-section-title:first-child,
+.panel-section-shell .finance-panel > h3:first-child {
+  display: none;
+}
+
+.panel-hidden-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.46);
+  margin-bottom: 14px;
+}
+
+.panel-hidden-strip-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.panel-hidden-strip-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.panel-hidden-chip {
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.panel-hidden-chip:hover {
+  border-color: var(--accent);
 }
 
 .intel-panel-skeleton {
@@ -1493,6 +1584,11 @@ html.nb-flow-lock {
 
   .intel-drawer-content {
     padding-top: 8px;
+  }
+
+  .panel-hidden-strip-mobile {
+    margin-top: 10px;
+    margin-bottom: 0;
   }
 }
 
@@ -2507,6 +2603,20 @@ html.nb-flow-lock {
    NEWSBITES APP — REDESIGNED READER (nb-* prefix)
    ============================================================ */
 
+/* ── App panel top strip (mobile only, in-flow below toolbar) ── */
+.nb-panel-top {
+  display: none;
+}
+
+/* Suppress bottom drawer and spacer when inside the app shell */
+.nb-shell .intel-drawer,
+.nb-shell .intel-drawer-overlay {
+  display: none !important;
+}
+.nb-shell .nb-app-intel-spacer {
+  display: none !important;
+}
+
 /* ── Shell ── */
 .nb-shell {
   position: relative;
@@ -2528,6 +2638,90 @@ html.nb-flow-lock {
 .nb-shell.nb-shell-flow {
   height: 100dvh;
   overscroll-behavior: none;
+}
+
+/* ── Flow mode: two-column body wrapper ── */
+.nb-flow-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Flow column (left): contains feed + all absolutely-positioned overlays */
+.nb-flow-col {
+  flex: 1 1 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Panel strip — mobile-only collapsible panel, hidden by default */
+.nb-flow-panel-strip {
+  display: none;
+}
+
+/* Flow panel column: dark theme to match the flow cards */
+.nb-panel-col-flow .intel-panel-section {
+  background: rgba(27, 42, 74, 0.75);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 246, 239, 0.9);
+}
+
+.nb-panel-col-flow .intel-panel-section .nb-digest-label,
+.nb-panel-col-flow .intel-panel-section h3,
+.nb-panel-col-flow .intel-panel-section .panel-label {
+  color: rgba(255, 246, 239, 0.5);
+}
+
+/* ── Two-column body (article left, panels right) ── */
+.nb-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nb-article-col {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nb-panel-col {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+  width: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 12px 20px;
+  background: rgba(255, 255, 255, 0.35);
+  border-left: 1px solid rgba(20, 35, 61, 0.08);
+}
+
+/* Force single-column card layout inside the article column
+   (digest flows vertically; panels live in the panel column) */
+.nb-article-col .nb-card-body {
+  grid-template-columns: 1fr;
+}
+
+.nb-article-col .nb-digest {
+  grid-column: 1;
+  grid-row: auto;
+}
+
+.nb-article-col .nb-card-aside {
+  grid-column: 1;
+  grid-row: auto;
 }
 
 /* ── Focus mode: Compact toolbar ── */
@@ -2795,6 +2989,28 @@ html.nb-flow-lock {
   align-self: stretch;
 }
 
+.nb-card-aside {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.nb-card-aside .nb-digest {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.nb-app-intel-panel-desktop {
+  margin-top: 2px;
+}
+
+.nb-app-intel-spacer {
+  display: none;
+}
+
 .nb-digest-block {
   padding: 14px 16px;
   border: 1px solid rgba(20, 35, 61, 0.07);
@@ -3021,7 +3237,6 @@ html.nb-flow-lock {
   position: relative;
   flex: 1;
   min-height: 0;
-  height: 100%;
   overflow: hidden;
   overscroll-behavior: contain;
 }
@@ -3180,6 +3395,11 @@ html.nb-flow-lock {
     grid-row: auto;
   }
 
+  .nb-card-aside {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
   .nb-flow-card-inner {
     padding: 56px 20px 20px;
   }
@@ -3227,16 +3447,108 @@ html.nb-flow-lock {
     min-width: 34px;
   }
 
-  .nb-article-area {
-    padding: 12px 14px 20px;
+  /* Panel top strip — shown on mobile */
+  .nb-panel-top {
+    display: block;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.97);
+    border-bottom: 1px solid rgba(20, 35, 61, 0.08);
+    z-index: 20;
+    overflow: hidden;
   }
 
+  .nb-panel-top-handle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 16px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    gap: 8px;
+    text-align: left;
+  }
+
+  .nb-panel-top-dots {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .nb-panel-top-dot {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.55;
+  }
+
+  .nb-panel-top-label {
+    flex: 1;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.03em;
+  }
+
+  .nb-panel-top-chevron {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  .nb-panel-top-body {
+    max-height: 45vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-top: 1px solid rgba(20, 35, 61, 0.06);
+    padding: 10px 16px 16px;
+  }
+
+  .nb-panel-top-content {
+    font-size: 0.88rem;
+  }
+
+  /* Article area: bounded, no scroll — card scrolls internally */
+  .nb-article-area {
+    padding: 12px 14px 12px;
+    overflow: hidden;
+  }
+
+  /* Card: fill the article area exactly */
+  .nb-card {
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+
+  /* Card body: scrollable content region */
   .nb-card-body {
     grid-template-columns: 1fr;
     gap: 10px;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide cover image on mobile for flush layout */
+  .nb-image-slot {
+    display: none;
+  }
+
+  /* Footer: always pinned at bottom of card */
+  .nb-card-footer {
+    margin-top: 0;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
   }
 
   .nb-digest {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .nb-card-aside {
     grid-column: 1;
     grid-row: auto;
   }
@@ -3288,7 +3600,7 @@ html.nb-flow-lock {
   }
 
   .nb-flow-card-inner {
-    padding: 54px 14px 16px;
+    padding: 54px 14px max(env(safe-area-inset-bottom, 0px), 20px);
   }
 
   .nb-card-title-flow {
@@ -3302,6 +3614,40 @@ html.nb-flow-lock {
   .nb-flow-hint {
     display: none;
   }
+
+  /* Flow panel strip — shown on mobile, dark theme to match flow cards */
+  .nb-flow-panel-strip {
+    display: block;
+    flex-shrink: 0;
+    z-index: 5;
+  }
+
+  .nb-flow-panel-strip .nb-panel-top {
+    display: block;
+    background: rgba(19, 35, 61, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .nb-flow-panel-strip .nb-panel-top-label {
+    color: rgba(255, 246, 239, 0.6);
+  }
+
+  .nb-flow-panel-strip .nb-panel-top-chevron {
+    color: rgba(255, 246, 239, 0.5);
+  }
+
+  .nb-flow-panel-strip .nb-panel-top-dot {
+    background: #F5A623;
+    opacity: 0.75;
+  }
+
+  /* Panel body: light background so panel content (hardcoded light-theme colors) is legible */
+  .nb-flow-panel-strip .nb-panel-top-body {
+    background: #f8f2e6;
+    border-top-color: rgba(20, 35, 61, 0.06);
+  }
+
+  /* nb-app-intel-spacer is suppressed in the app shell via .nb-shell rule above */
 }
 
 @media (max-width: 420px) {
@@ -3317,6 +3663,32 @@ html.nb-flow-lock {
   border-radius: 0;
   box-shadow: none;
   padding: 0;
+}
+
+/* ── Responsive: desktop/tablet — two-column panel layout ── */
+@media (min-width: 721px) {
+  .nb-body {
+    flex-direction: row;
+  }
+
+  .nb-flow-body {
+    flex-direction: row;
+  }
+
+  .nb-panel-col {
+    display: flex;
+  }
+
+  /* Panel sections fill the column width */
+  .nb-panel-col .intel-panel-desktop {
+    width: 100%;
+  }
+}
+
+@media (min-width: 1100px) {
+  .nb-panel-col {
+    width: 380px;
+  }
 }
 
 /* ── Finance App Layout ── */
@@ -3688,6 +4060,104 @@ html.nb-flow-lock {
 }
 .pronostic-warnings li { margin-bottom: 0.25rem; }
 
+.sports-pronostic-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 22px;
+  padding: 18px;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.sports-pronostic-card:hover {
+  border-color: rgba(245, 166, 35, 0.55);
+  box-shadow: 0 18px 34px rgba(19, 35, 61, 0.08);
+  transform: translateY(-1px);
+}
+
+.sports-pronostic-card-top,
+.sports-pronostic-card-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sports-pronostic-card-kicker,
+.sports-pronostic-card-link {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.sports-pronostic-card-confidence {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sports-pronostic-card-confidence.is-high {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.sports-pronostic-card-confidence.is-medium {
+  background: rgba(245, 166, 35, 0.14);
+  color: #b45309;
+}
+
+.sports-pronostic-card-confidence.is-low {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+}
+
+.sports-pronostic-card-title {
+  margin: 0;
+  font-family: var(--font-display), serif;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+
+.sports-pronostic-card-outcome {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.sports-pronostic-card-bars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.sports-pronostic-card-bars span {
+  display: block;
+  height: 10px;
+  min-width: 18px;
+  border-radius: 999px;
+}
+
+.sports-pronostic-card-bars span:nth-child(1) {
+  background: var(--accent);
+}
+
+.sports-pronostic-card-bars span:nth-child(2) {
+  background: rgba(92, 104, 128, 0.55);
+}
+
+.sports-pronostic-card-bars span:nth-child(3) {
+  background: var(--surface-deep);
+}
+
+.sports-pronostic-card-stats {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
 /* NBA Standings */
 .nba-standings-grid {
   display: grid;
@@ -3755,6 +4225,20 @@ html.nb-flow-lock {
   font-weight: 700;
   color: var(--color-text-muted, #6b7280);
 }
+
+.team-mini-subscription {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(245, 166, 35, 0.14);
+  color: #b45309;
+}
 .team-mini-form {
   display: flex;
   gap: 0.25rem;
@@ -3769,6 +4253,69 @@ html.nb-flow-lock {
   font-weight: 700;
   color: white;
   border-radius: 0.25rem;
+}
+
+.finance-subscription-strip {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.finance-subscription-strip-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.finance-subscription-strip-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.finance-subscription-card {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.52);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+.finance-subscription-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.finance-subscription-symbol {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.finance-subscription-name,
+.finance-subscription-change {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.finance-subscription-change.is-positive {
+  color: #15803d;
+}
+
+.finance-subscription-change.is-negative {
+  color: #b91c1c;
+}
+
+.finance-subscription-price {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 /* Match Result Card */

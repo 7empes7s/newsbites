@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "La Roche-Posay enters 1,460 Walmart stores as dermatologist skincare moves deeper into mass retail"
 slug: "la-roche-posay-walmart-expansion"
 date: "2026-04-11"
@@ -15,6 +16,7 @@ digest: "La Roche-Posay's Walmart rollout shows clinical skincare brands want ma
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 La Roche-Posay said on April 3 that it had expanded into 1,460 Walmart stores
 across the United States. Walmart's site now carries a dedicated brand page

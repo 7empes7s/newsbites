@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "PlayStation launches The Playerbase and will scan one fan into Gran Turismo 7"
 slug: "playstation-playerbase-gran-turismo-7"
 date: "2026-04-11"
@@ -16,6 +17,7 @@ digest: "PlayStation is turning one fan into Gran Turismo 7 content through a ne
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 PlayStation is testing a new kind of fan program. Instead of offering a beta
 slot, a collector's item, or a normal contest reward, Sony says one selected

@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "Interface fatigue is creating room for simpler products"
 slug: "trends-interface-fatigue"
 date: "2026-04-03"
@@ -13,6 +14,7 @@ digest: "Digital products have piled on so many panels, nudges, and banners that
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 ## More features, less clarity
 

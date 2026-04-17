@@ -1,4 +1,9 @@
+"use client";
+
 // components/panels/sports/StandingsTable.tsx
+
+import { useMemo } from "react";
+import { getSubscriptions } from "@/lib/subscriptions";
 
 type Standing = {
   position: number;
@@ -26,8 +31,14 @@ export function StandingsTable({
 }: Props) {
   if (!standings || standings.length === 0) return null;
 
+  const subscribedTeams = useMemo(() => getSubscriptions().teams, []);
+  const mergedHighlights = useMemo(
+    () => [...new Set([...highlightTeams, ...subscribedTeams])],
+    [highlightTeams, subscribedTeams],
+  );
+
   const isHighlighted = (name: string) =>
-    highlightTeams.some(t => name.toLowerCase().includes(t.toLowerCase()));
+    mergedHighlights.some((team) => name.toLowerCase().includes(team.toLowerCase()));
 
   return (
     <div className="panel-section">

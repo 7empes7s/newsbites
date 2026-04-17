@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "Spring 2026 anime is arriving in a strong first wave of big releases"
 slug: "spring-2026-anime-release-window"
 date: "2026-04-11"
@@ -16,6 +17,7 @@ digest: "The short spring watchlist starts with Re:ZERO, Classroom of the Elite,
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 Spring 2026 anime is arriving as a cluster of recognizable titles rather than a
 single dominant launch. If you want the short version of the season, start

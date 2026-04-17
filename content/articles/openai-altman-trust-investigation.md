@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  ai_models: []
 title: "Sam Altman Faces the Most Detailed Investigation Into His Leadership Yet -- on the Same Day He Proposes an AI New Deal"
 slug: "openai-altman-trust-investigation"
 date: "2026-04-06"
@@ -15,6 +17,8 @@ digest: "An 18-month New Yorker investigation by Ronan Farrow and Andrew Marantz
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  ai_models: []
 
 On April 6, 2026, two things happened that, taken together, define the central tension in artificial intelligence right now.
 

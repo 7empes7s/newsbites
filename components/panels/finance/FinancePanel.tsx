@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { detectTickerFromArticle } from "@/lib/finance/tickers";
+import { getArticleTickers, type TickerMapping } from "@/lib/finance/tickers";
 import { fetchFinanceDataForTicker, type FinanceTickerData } from "@/lib/panels/fetchers/finance";
 import type { Article } from "@/lib/articles";
+import { SubscribedTickerStrip } from "./SubscribedTickerStrip";
 
 function SparklineMini({ data, positive }: { data: number[]; positive: boolean }) {
   if (data.length < 2) return null;
@@ -107,29 +108,36 @@ async function IndexCard({ symbol }: { symbol: string }) {
 }
 
 export async function FinancePanel({ article }: { article: Article }) {
-  const ticker = detectTickerFromArticle(article.title, article.content || "");
+  const tickers = getArticleTickers(
+    article.title,
+    article.content || "",
+    article.panel_hints?.tickers || [],
+  );
+  const primaryTicker = tickers[0] ?? null;
 
   return (
     <div className="finance-panel">
       <h3 className="text-sm font-semibold text-[#1B2A4A] mb-3">Market Overview</h3>
-      
-      {ticker && <TickerCardWithData ticker={ticker} />}
-      
+
+      <SubscribedTickerStrip />
+
+      {primaryTicker ? <TickerCardWithData ticker={primaryTicker} /> : null}
+
       <MarketOverview />
-      
-      {ticker && (
+
+      {primaryTicker ? (
         <Link
-          href={`/finance/charts?ticker=${ticker.symbol}`}
+          href={`/finance/charts?ticker=${primaryTicker.symbol}`}
           className="block mt-3 text-xs text-center text-[#F5A623] hover:underline"
         >
-          View full {ticker.name} analysis →
+          View full {primaryTicker.name} analysis →
         </Link>
-      )}
+      ) : null}
     </div>
   );
 }
 
-async function TickerCardWithData({ ticker }: { ticker: ReturnType<typeof detectTickerFromArticle> }) {
+async function TickerCardWithData({ ticker }: { ticker: TickerMapping | null }) {
   if (!ticker) return null;
   const data = await fetchFinanceDataForTicker(ticker.symbol);
   if (!data) return null;

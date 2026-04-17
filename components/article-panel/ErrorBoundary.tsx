@@ -27,11 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="nb-panel-inline">
-          <p className="nb-panel-empty">Unable to load data</p>
-        </div>
-      );
+      return this.props.fallback ?? null;
     }
 
     return this.props.children;

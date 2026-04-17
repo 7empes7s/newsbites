@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { ArticleCard } from "@/components/article-card";
 import {
   getGroupForVertical,
@@ -7,6 +8,19 @@ import {
   getVerticalLabel,
 } from "@/lib/article-taxonomy";
 import { getAllVerticals, getArticlesByVertical } from "@/lib/articles";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ vertical: string }>;
+}): Promise<Metadata> {
+  const { vertical } = await params;
+  const label = getVerticalLabel(vertical);
+  return {
+    title: `${label} | NewsBites`,
+    description: `Latest stories in ${label}. Sharp briefings, clear context, and actionable insights from NewsBites.`,
+  };
+}
 
 export function generateStaticParams() {
   return getAllVerticals().map((vertical) => ({ vertical }));

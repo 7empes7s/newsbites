@@ -28,11 +28,7 @@ export function PanelRenderer({ sections: initialSections, loading: initialLoadi
   }
 
   if (sections.length === 0) {
-    return (
-      <div className="nb-panel-inline">
-        <p className="nb-panel-empty">No data available</p>
-      </div>
-    );
+    return null;
   }
 
   return (

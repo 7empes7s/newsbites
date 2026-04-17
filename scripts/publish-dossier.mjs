@@ -53,6 +53,13 @@ function normalizeVertical(vertical) {
     .replace(/\s+/g, "-");
 }
 
+function normalizeHintList(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function parsePanelHints(content) {
   const match = content.match(/PANEL_HINTS:\s*([\s\S]+?)(?:\n---|\n\n|$)/);
   if (!match) return null;
@@ -66,16 +73,38 @@ function parsePanelHints(content) {
     if (!value || value === 'omit') continue;
 
     const k = key.trim();
-    if (k === 'teams') hints.teams = value.split(',').map(s => s.trim());
-    else if (k === 'tickers') hints.tickers = value.split(',').map(s => s.trim());
-    else if (k === 'country_codes') hints.country_codes = value.split(',').map(s => s.trim());
-    else if (k === 'competition' || k === 'github_repos' || k === 'nasa_mission') hints[k] = value;
+    if (k === 'teams') hints.teams = normalizeHintList(value);
+    else if (k === 'tickers') hints.tickers = normalizeHintList(value);
+    else if (k === 'country_codes') hints.country_codes = normalizeHintList(value);
+    else if (k === 'github_repos') hints.github_repos = normalizeHintList(value);
+    else if (k === 'competition' || k === 'nasa_mission') hints[k] = value;
   }
   return Object.keys(hints).length > 0 ? hints : null;
 }
 
 function stripPanelHints(content) {
   return content.replace(/PANEL_HINTS:\s*[\s\S]+?(?=\n---|\n\n|$)/, '').trim();
+}
+
+function formatYamlScalar(value) {
+  return JSON.stringify(String(value ?? ""));
+}
+
+function pushYamlValue(lines, key, value, indent = "  ") {
+  if (Array.isArray(value)) {
+    if (value.length === 0) return;
+    lines.push(`${indent}${key}:`);
+    for (const item of value) {
+      lines.push(`${indent}  - ${formatYamlScalar(item)}`);
+    }
+    return;
+  }
+
+  if (value === undefined || value === null || value === "") {
+    return;
+  }
+
+  lines.push(`${indent}${key}: ${formatYamlScalar(value)}`);
 }
 
 function buildArticleFrontmatter(frontmatter, status, panelHints) {
@@ -125,7 +154,13 @@ function toMarkdown(frontmatter, body) {
     lines.push(`digest: ${JSON.stringify(frontmatter.digest)}`);
   }
   if (frontmatter.panel_hints) {
-    lines.push(`panel_hints: ${JSON.stringify(frontmatter.panel_hints)}`);
+    lines.push("panel_hints:");
+    pushYamlValue(lines, "competition", frontmatter.panel_hints.competition);
+    pushYamlValue(lines, "teams", frontmatter.panel_hints.teams);
+    pushYamlValue(lines, "tickers", frontmatter.panel_hints.tickers);
+    pushYamlValue(lines, "country_codes", frontmatter.panel_hints.country_codes);
+    pushYamlValue(lines, "github_repos", frontmatter.panel_hints.github_repos);
+    pushYamlValue(lines, "nasa_mission", frontmatter.panel_hints.nasa_mission);
   }
   lines.push(
     `coverImage: ${JSON.stringify(frontmatter.coverImage)}`,
@@ -144,13 +179,15 @@ function main() {
   assert(path.isAbsolute(dossierPath), "dossier path must be absolute");
 
   const publishPath = path.join(dossierPath, "publish.md");
+  const draftPath = path.join(dossierPath, "draft.md");
   assert(fs.existsSync(publishPath), `publish.md not found at ${publishPath}`);
 
   const fileContents = fs.readFileSync(publishPath, "utf8");
   const { data, content } = matter(fileContents);
   assert(content.trim(), "publish.md body is empty");
 
-  const panelHints = parsePanelHints(content);
+  const draftContents = fs.existsSync(draftPath) ? fs.readFileSync(draftPath, "utf8") : "";
+  const panelHints = parsePanelHints(content) ?? parsePanelHints(draftContents);
   const cleanContent = stripPanelHints(content);
 
   const article = buildArticleFrontmatter(data, status, panelHints);

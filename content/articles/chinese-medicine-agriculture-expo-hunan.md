@@ -1,4 +1,5 @@
 ---
+panel_hints: {}
 title: "China's first full-chain TCM agriculture expo opens in Hunan"
 slug: "chinese-medicine-agriculture-expo-hunan"
 date: "2026-04-11"
@@ -15,6 +16,7 @@ digest: "The Hunan expo is treating TCM as an industrial supply-chain story, not
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints: {}
 
 The first edition of the Chinese Medicine Agriculture Expo opened in Changsha
 on April 10, 2026, according to Xinhua. Opening-day coverage described more

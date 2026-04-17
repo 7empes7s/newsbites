@@ -30,6 +30,8 @@ export interface PanelHints {
   h2h_home?: number;
   h2h_draw?: number;
   h2h_away?: number;
+  home_injuries?: { playerName: string; reason: 'injured' | 'suspended'; isKeyPlayer: boolean }[];
+  away_injuries?: { playerName: string; reason: 'injured' | 'suspended'; isKeyPlayer: boolean }[];
   tickers?: string[];
   country_codes?: string[];
   github_repos?: string[];

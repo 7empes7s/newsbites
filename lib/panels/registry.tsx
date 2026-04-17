@@ -37,9 +37,9 @@ import ReleasesCalendarCardLoader from "@/components/panels/culture/ReleasesCale
 import BoxOfficeCardLoader from "@/components/panels/culture/BoxOfficeCard";
 import RedditSentimentCardLoader from "@/components/panels/trends/RedditSentimentCard";
 import { fetchStandings, fetchUpcomingFixtures, fetchKnockoutMatches, detectAllCompetitions, getCompetitionMeta, searchTeamByName, fetchTeamUpcomingMatches, fetchH2HMatches } from "@/lib/panels/fetchers/sports";
-import { detectTickerFromArticle, TICKER_MAP } from "@/lib/finance/tickers";
+import { getArticleTickers, detectTickerFromArticle, TICKER_MAP } from "@/lib/finance/tickers";
 import { fetchFinanceDataForTicker } from "@/lib/panels/fetchers/finance";
-import { calculatePronostic } from "@/lib/panels/pronostics";
+import { calculatePronostic, calculatePronosticV2 } from "@/lib/panels/pronostics";
 
 function normalizeTeamName(name: string): string {
   return name
@@ -74,7 +74,7 @@ type Match = {
 const KNOCKOUT_COMPETITIONS = ['CL', 'WC', 'EC'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sportsPanels: PanelConfig<any>[] = [
+const basketballPanels: PanelConfig<any>[] = [
   {
     id: "nba-standings",
     priority: 0,
@@ -84,6 +84,10 @@ const sportsPanels: PanelConfig<any>[] = [
       return <NBAStandingsCard article={article} />;
     },
   },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const motorsportPanels: PanelConfig<any>[] = [
   {
     id: "f1-race",
     priority: 0,
@@ -93,6 +97,10 @@ const sportsPanels: PanelConfig<any>[] = [
       return <F1RaceCard article={article} />;
     },
   },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const footballPanels: PanelConfig<any>[] = [
   {
     id: "sports-standings",
     priority: 1,
@@ -184,15 +192,18 @@ const sportsPanels: PanelConfig<any>[] = [
     priority: 3,
     component: async (article: Article) => {
       const { panel_hints } = article;
-      const { home_team, away_team, home_form, away_form, h2h_home, h2h_draw, h2h_away } = panel_hints || {};
+      const { home_team, away_team, home_form, away_form, h2h_home, h2h_draw, h2h_away, home_injuries, away_injuries } = panel_hints || {};
       if (!home_team || !away_team) return null;
-      const result = calculatePronostic(
-        home_form || [],
-        away_form || [],
-        h2h_home || 0,
-        h2h_draw || 0,
-        h2h_away || 0
-      );
+      const v2Input = {
+        homeForm: home_form || [],
+        awayForm: away_form || [],
+        h2hHomeWins: h2h_home || 0,
+        h2hDraws: h2h_draw || 0,
+        h2hAwayWins: h2h_away || 0,
+        homeInjuries: home_injuries || [],
+        awayInjuries: away_injuries || [],
+      };
+      const result = calculatePronosticV2(v2Input);
       return (
         <PronosticWidget
           homeTeam={home_team}
@@ -202,6 +213,7 @@ const sportsPanels: PanelConfig<any>[] = [
           awayWin={result.awayWin}
           predictedOutcome={result.predictedOutcome}
           confidence={result.confidence}
+          warnings={result.warnings}
         />
       );
     },
@@ -317,14 +329,25 @@ const sportsPanels: PanelConfig<any>[] = [
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sportsPanels: PanelConfig<any>[] = [
+  ...basketballPanels,
+  ...motorsportPanels,
+  ...footballPanels,
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const financePanels: PanelConfig<any>[] = [
   {
     id: "finance-overview",
     priority: 1,
     cta: { label: "Finance Intelligence →", href: "/finance" },
     component: async (article: Article) => {
-      const ticker = detectTickerFromArticle(article.title, article.content || "");
-      if (!ticker) return null;
+      const tickers = getArticleTickers(
+        article.title,
+        article.content || "",
+        article.panel_hints?.tickers || [],
+      );
+      if (tickers.length === 0) return null;
       return <FinancePanel article={article} />;
     },
   },
@@ -333,8 +356,12 @@ const financePanels: PanelConfig<any>[] = [
     priority: 2,
     cta: { label: "Finance Intelligence →", href: "/finance" },
     component: async (article: Article) => {
-      const ticker = detectTickerFromArticle(article.title, article.content || "");
-      if (!ticker) return null;
+      const tickers = getArticleTickers(
+        article.title,
+        article.content || "",
+        article.panel_hints?.tickers || [],
+      );
+      if (tickers.length === 0) return null;
       return <TickerSparklinePanel article={article} />;
     },
   },
@@ -591,10 +618,43 @@ export function getPanelSections(article: Article): PanelConfig[] {
   const configs: PanelConfig[] = [];
   const { vertical, tags = [], panel_hints } = article;
 
-  const hasTags = (...t: string[]) => t.some((tag) => tags.includes(tag));
+  const normalizedTags = tags.map((tag) => tag.toLowerCase());
+  const hasTags = (...candidates: string[]) =>
+    candidates.some((candidate) => normalizedTags.includes(candidate.toLowerCase()));
 
-  if (vertical === "sports" || hasTags("football", "basketball", "tennis", "formula-1", "nba", "f1"))
-    configs.push(...sportsPanels);
+  const hasFootballSignals =
+    vertical === "sports" &&
+    Boolean(
+      panel_hints?.competition ||
+      panel_hints?.home_team ||
+      panel_hints?.away_team ||
+      panel_hints?.teams?.length,
+    );
+
+  if (hasTags("nba", "basketball")) {
+    configs.push(...basketballPanels);
+  }
+
+  if (hasTags("f1", "formula-1", "formula")) {
+    configs.push(...motorsportPanels);
+  }
+
+  if (
+    hasFootballSignals ||
+    hasTags(
+      "football",
+      "champions-league",
+      "premier-league",
+      "la-liga",
+      "serie-a",
+      "bundesliga",
+      "ligue-1",
+      "world-cup",
+      "euros",
+    )
+  ) {
+    configs.push(...footballPanels);
+  }
 
   if (["finance", "economy", "crypto"].includes(vertical) || (panel_hints?.tickers?.length ?? 0) > 0)
     configs.push(...financePanels);
@@ -676,11 +736,11 @@ export function getPanelSections(article: Article): PanelConfig[] {
 
   // Tag-based panel overrides
   const TAG_PANEL_MAP: Record<string, PanelConfig[]> = {
-    'champions-league': sportsPanels,
-    'premier-league': sportsPanels,
-    'la-liga': sportsPanels,
-    'serie-a': sportsPanels,
-    'bundesliga': sportsPanels,
+    'champions-league': footballPanels,
+    'premier-league': footballPanels,
+    'la-liga': footballPanels,
+    'serie-a': footballPanels,
+    'bundesliga': footballPanels,
     'bitcoin': financePanels,
     'btc': financePanels,
     'crypto': financePanels,
@@ -710,6 +770,9 @@ export function getPanelSections(article: Article): PanelConfig[] {
 // Export panel arrays so vertical modules can push into them at import time
 export {
   sportsPanels,
+  basketballPanels,
+  motorsportPanels,
+  footballPanels,
   financePanels,
   worldPanels,
   techPanels,

@@ -1,4 +1,6 @@
 ---
+panel_hints:
+  ai_models: []
 title: "OpenAI, Anthropic, and Google launch joint defense against AI model copying"
 slug: "frontier-model-forum-ai-distillation-defense"
 date: "2026-04-10"
@@ -17,6 +19,8 @@ digest: "Three rival AI labs are now sharing signals on large-scale model-copyin
 coverImage: ""
 author: "NewsBites Desk"
 ---
+panel_hints:
+  ai_models: []
 
 OpenAI, Anthropic, and Google are sharing intelligence on attempts to copy frontier AI models through the Frontier Model Forum, the industry group they co-founded with Microsoft in 2023. Bloomberg says it is the first coordinated defense effort between the three labs.
 

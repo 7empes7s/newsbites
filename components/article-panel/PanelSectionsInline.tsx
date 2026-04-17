@@ -69,11 +69,7 @@ export function PanelSectionsInline({ article, maxSections = 3 }: Props) {
   }
 
   if (sections.length === 0) {
-    return (
-      <div className="nb-panel-inline">
-        <p className="nb-panel-empty">No data available for this article</p>
-      </div>
-    );
+    return null;
   }
 
   return (

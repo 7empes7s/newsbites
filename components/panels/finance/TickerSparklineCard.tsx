@@ -1,6 +1,6 @@
 import { fetchFinanceDataForTicker, type FinanceTickerData } from "@/lib/panels/fetchers/finance";
 import type { Article } from "@/lib/articles";
-import { detectTickerFromArticle } from "@/lib/finance/tickers";
+import { getArticleTickers } from "@/lib/finance/tickers";
 
 interface SparklineProps {
   data: number[];
@@ -66,7 +66,11 @@ function TickerCard({ data, name }: TickerCardProps) {
 }
 
 export async function TickerSparklinePanel({ article }: { article: Article }) {
-  const ticker = detectTickerFromArticle(article.title, article.content || "");
+  const ticker = getArticleTickers(
+    article.title,
+    article.content || "",
+    article.panel_hints?.tickers || [],
+  )[0];
   if (!ticker) return null;
 
   const data = await fetchFinanceDataForTicker(ticker.symbol);

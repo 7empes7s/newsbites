@@ -143,6 +143,56 @@ export async function fetchUpcomingFixtures(competitionCode: string, slug?: stri
   return data;
 }
 
+export async function fetchTodayMatches(competitionCodes: string[]) {
+  const allMatches: { code: string; matches: unknown[] }[] = [];
+  
+  for (const code of competitionCodes) {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+    
+    const res = await fetch(
+      `${FOOTBALL_DATA_BASE}/competitions/${code}/matches?dateFrom=${todayStr}&dateTo=${tomorrowStr}`,
+      { headers: getHeaders(), next: { revalidate: 300 } }
+    );
+    if (!res.ok) continue;
+    const data = await res.json() as { matches?: unknown[] };
+    if (data?.matches?.length) {
+      allMatches.push({ code, matches: data.matches });
+    }
+  }
+  
+  return allMatches;
+}
+
+export interface Scorer {
+  player: { name: string; nationality: string };
+  team: { name: string };
+  goals: number;
+}
+
+export async function fetchTopScorers(competitionCode: string, limit = 10): Promise<Scorer[]> {
+  const res = await fetch(
+    `${FOOTBALL_DATA_BASE}/competitions/${competitionCode}/scorers?limit=${limit}`,
+    { headers: getHeaders(), next: { revalidate: 3600 } }
+  );
+  if (!res.ok) return [];
+  const data = await res.json() as { scorers?: { player: { name: string; nationality: string }; team: { name: string }; goals: number }[] };
+  return data?.scorers ?? [];
+}
+
+export async function fetchRecentResults(competitionCode: string, limit = 5) {
+  const res = await fetch(
+    `${FOOTBALL_DATA_BASE}/competitions/${competitionCode}/matches?status=FINISHED&limit=${limit}`,
+    { headers: getHeaders(), next: { revalidate: 600 } }
+  );
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function fetchLiveMatches(competitionCode: string) {
   const res = await fetch(
     `${FOOTBALL_DATA_BASE}/competitions/${competitionCode}/matches?status=LIVE`,
