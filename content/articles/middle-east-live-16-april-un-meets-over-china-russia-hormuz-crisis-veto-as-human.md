@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "The UN General Assembly is meeting on 16 April to address a China-Russia Security Council veto on the Hormuz crisis, while Lebanon faces a worsening humanitarian situation."
 digest: "The UN General Assembly is meeting over a China-Russia veto on the Hormuz crisis as Lebanon's humanitarian situation worsens."
-coverImage: ""
+coverImage: "/images/articles/middle-east-live-16-april-un-meets-over-china-russia-hormuz-crisis-veto-as-human.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

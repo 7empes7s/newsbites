@@ -7,7 +7,7 @@ tags:
   - "diplomacy"
   - "trade"
   - "geopolitics"
-status: "approved"
+status: "published"
 panel_hints:
   country_codes:
     - SA
@@ -16,7 +16,7 @@ panel_hints:
     - IN
 lead: "As larger blocs stay locked in prolonged competition, smaller but agile states are gaining leverage through trade routes, energy, and selective alignment."
 digest: "While major powers stay locked in competition, mid-sized states are writing parts of the global agenda that larger blocs have to react to — through port concessions, energy output decisions, bilateral currency deals, and selective security partnerships. The key test is whether these positions survive political cycles, turning geographic and commercial leverage into durable negotiating power rather than one-off deals."
-coverImage: ""
+coverImage: "/images/articles/global-politics-middle-powers.jpg"
 author: "NewsBites Desk"
 ---
 

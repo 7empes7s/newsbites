@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "The UN General Assembly is debating the China-Russia Security Council veto on the Hormuz crisis as the Lebanon war continues, with assembly president Annalena Baerbock urging action to stabilize the region."
 digest: "UN General Assembly debates China-Russia Security Council veto on Hormuz crisis as Lebanon war continues."
-coverImage: ""
+coverImage: "/images/articles/middle-east-live-16-april-un-meets-over-china-russia-hormuz-crisis-veto-as-leban.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "Researchers propose Temperature-Controlled Verdict Aggregation (TCVA), a method for adaptive AI evaluation using generalized power-mean aggregation and a temperature parameter."
 digest: "Researchers propose a new AI evaluation method that adjusts rigor via a temperature parameter."
-coverImage: ""
+coverImage: "/images/articles/adaptive-rigor-in-ai-system-evaluation-using-temperature-controlled-verdict-aggr.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

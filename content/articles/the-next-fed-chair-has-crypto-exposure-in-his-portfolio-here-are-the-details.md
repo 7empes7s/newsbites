@@ -15,7 +15,7 @@ panel_hints:
     - ETH-USD
 lead: "The next Federal Reserve chair, Kevin Warsh, has disclosed crypto investments in his financial disclosure, which he has pledged to sell before taking office."
 digest: "Next Fed chair Kevin Warsh has crypto investments he has promised to sell before taking office."
-coverImage: ""
+coverImage: "/images/articles/the-next-fed-chair-has-crypto-exposure-in-his-portfolio-here-are-the-details.jpg"
 author: "NewsBites Desk"
 ---
 The next Federal Reserve chair, Kevin Warsh, has disclosed that he holds crypto-related assets, including stakes in DeFi protocols, Ethereum scaling networks, a Bitcoin Lightning startup, and prediction markets. Warsh has pledged to sell all these assets before assuming his role.

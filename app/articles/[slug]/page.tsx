@@ -5,9 +5,39 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { getVerticalLabel } from "@/lib/article-taxonomy";
 import { getAllArticles, getArticleBySlug } from "@/lib/articles";
+import type { ImageSource } from "@/lib/articles";
 import { ArticleIntelPanel } from "@/components/article-panel/ArticleIntelPanel";
 import { ArticleMarketContext } from "@/components/ArticleMarketContext";
 import { ArticleJsonLd } from "@/components/ArticleJsonLd";
+
+function ImageSourceBadge({ raw }: { raw?: string }) {
+  if (!raw) return null;
+  let source: ImageSource;
+  try { source = JSON.parse(raw); } catch { return null; }
+
+  if (source.type === "ai") {
+    return <p className="image-source-badge image-source-ai">AI-generated image</p>;
+  }
+  if (source.type === "stock" && source.photographer) {
+    const platform = source.provider === "pexels" ? "Pexels" : source.provider === "pixabay" ? "Pixabay" : source.provider;
+    const platformUrl = source.provider === "pexels" ? "https://www.pexels.com" : source.provider === "pixabay" ? "https://pixabay.com" : null;
+    return (
+      <p className="image-source-badge image-source-stock">
+        Photo:{" "}
+        {source.photographerUrl
+          ? <a href={source.photographerUrl} target="_blank" rel="noopener noreferrer">{source.photographer}</a>
+          : source.photographer}
+        {platform && platformUrl && (
+          <> /{" "}<a href={platformUrl} target="_blank" rel="noopener noreferrer">{platform}</a></>
+        )}
+        {source.sourceUrl && (
+          <> · <a href={source.sourceUrl} target="_blank" rel="noopener noreferrer">source</a></>
+        )}
+      </p>
+    );
+  }
+  return null;
+}
 
 export async function generateMetadata({
   params,
@@ -82,6 +112,14 @@ export default async function ArticlePage({
           </p>
           <h1>{article.title}</h1>
           <p className="article-summary">{article.lead}</p>
+
+          {article.coverImage && (
+            <div className="article-cover-image">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={article.coverImage} alt="" aria-hidden="true" />
+              <ImageSourceBadge raw={article.imageSource} />
+            </div>
+          )}
 
           <div className="prose">
             <Markdown remarkPlugins={[remarkGfm]}>{article.content}</Markdown>

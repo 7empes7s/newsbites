@@ -1072,6 +1072,55 @@ html.nb-flow-lock {
   max-width: 60ch;
 }
 
+.article-cover-image {
+  border-radius: 18px;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  position: relative;
+}
+
+.article-cover-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-source-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin: 0;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.image-source-badge a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.image-source-ai {
+  background: rgba(245, 166, 35, 0.88);
+  color: #1B2A4A;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.image-source-stock {
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.image-source-stock a {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .article-sidebar {
   display: flex;
   flex-direction: column;
@@ -3041,12 +3090,13 @@ html.nb-flow-lock {
 /* ── Image placeholder (above buttons) ── */
 .nb-image-slot {
   flex-shrink: 0;
-  margin-top: 16px;
+  margin-top: 0;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: clamp(120px, 18vh, 200px);
-  border-radius: 18px;
+  height: clamp(140px, 22vh, 240px);
+  border-radius: 14px;
   border: 1px dashed rgba(20, 35, 61, 0.18);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(248, 236, 218, 0.45)),
@@ -3532,9 +3582,11 @@ html.nb-flow-lock {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Hide cover image on mobile for flush layout */
+  /* Tighter image slot on mobile */
   .nb-image-slot {
-    display: none;
+    height: clamp(120px, 20vw, 160px);
+    border-radius: 10px;
+    margin-bottom: 10px;
   }
 
   /* Footer: always pinned at bottom of card */

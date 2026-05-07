@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "Researchers propose a new citation recommendation system that integrates human citation patterns with semantic data to improve accuracy and efficiency."
 digest: "Researchers propose a lightweight, efficient citation recommendation system that integrates human patterns and semantic data."
-coverImage: ""
+coverImage: "/images/articles/public-profile-matters-a-scalable-integrated-approach-to-recommend-citations-in.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

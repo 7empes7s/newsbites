@@ -17,7 +17,7 @@ panel_hints:
     - NVDA
 lead: "The AMD-OpenAI agreement gives AMD a documented foothold in one of the largest disclosed AI infrastructure buildouts, while leaving key commercial details undisclosed."
 digest: "OpenAI committed to a 6-gigawatt AI compute deployment with AMD, starting with 1 gigawatt of MI450-based capacity in the second half of 2026. AMD also disclosed a 160 million-share warrant package for OpenAI, while saying the deal could generate tens of billions in revenue over time."
-coverImage: ""
+coverImage: "/images/articles/openai-amd-ai-infrastructure-partnership.jpg"
 author: "NewsBites Desk"
 ---
 OpenAI has committed to a 6-gigawatt AI computing deployment with AMD, according to AMD's investor-relations announcement and a same-day regulatory filing, both dated October 6, 2025. The agreement starts with an initial 1 gigawatt deployment in the second half of 2026 using AMD Instinct MI450 series GPUs, and AMD has disclosed a warrant structure that gives OpenAI a financial stake in the chipmaker tied to how quickly the deployment proceeds.

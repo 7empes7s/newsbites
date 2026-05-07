@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "Researchers propose AdaQE-CG, a framework to improve automated documentation for generative AI models by addressing static templates, incomplete data, and benchmarking gaps."
 digest: "AdaQE-CG introduces a novel framework to enhance automated documentation for generative AI models by addressing issues with static templates, incomplete data, and benchmarking gaps."
-coverImage: ""
+coverImage: "/images/articles/adaqe-cg-adaptive-query-expansion-for-web-scale-generative-ai-model-and-data-car.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

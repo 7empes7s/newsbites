@@ -12,7 +12,7 @@ tags:
 status: "published"
 lead: "The two European giants clash in what promises to be a blockbuster semi-final first leg at the Bernabeu."
 digest: "Real Madrid host Bayern Munich in the first leg of their Champions League semi-final. Both teams in form, expect goals."
-coverImage: ""
+coverImage: "/images/articles/champions-league-semifinal-real-bayern-april-2026.jpg"
 author: "NewsBites Desk"
 panel_hints:
   competition: "CL"

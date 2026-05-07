@@ -13,7 +13,7 @@ tags:
 status: "published"
 lead: "A former New South Wales MP found by Icac to have engaged in serious corrupt conduct was celebrated as an 'esteemed luminary' at a Liberal Party campaign event."
 digest: "A former NSW MP with a corruption finding was praised at a Liberal campaign event."
-coverImage: ""
+coverImage: "/images/articles/former-nsw-mp-spruiked-as-esteemed-liberal-at-campaign-event-despite-icacs-serio.jpg"
 author: "NewsBites Desk"
 ---
 panel_hints:

@@ -119,6 +119,7 @@ function buildArticleFrontmatter(frontmatter, status, panelHints) {
     lead: String(frontmatter.lead || "").trim(),
     digest: String(frontmatter.digest || "").trim(),
     coverImage: String(frontmatter.coverImage || ""),
+    imageSource: frontmatter.imageSource ? String(frontmatter.imageSource) : undefined,
     author: String(frontmatter.author || "NewsBites Desk").trim(),
   };
 
@@ -161,6 +162,9 @@ function toMarkdown(frontmatter, body) {
     pushYamlValue(lines, "country_codes", frontmatter.panel_hints.country_codes);
     pushYamlValue(lines, "github_repos", frontmatter.panel_hints.github_repos);
     pushYamlValue(lines, "nasa_mission", frontmatter.panel_hints.nasa_mission);
+  }
+  if (frontmatter.imageSource) {
+    lines.push(`imageSource: ${JSON.stringify(frontmatter.imageSource)}`);
   }
   lines.push(
     `coverImage: ${JSON.stringify(frontmatter.coverImage)}`,

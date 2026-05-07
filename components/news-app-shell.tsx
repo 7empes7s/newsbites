@@ -560,6 +560,15 @@ export function NewsAppShell({
               </div>
             ) : activeArticle ? (
               <article className="nb-card" key={activeArticle.slug}>
+                {activeArticle.coverImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className="nb-card-cover"
+                    src={activeArticle.coverImage}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                ) : null}
                 <div className="nb-card-body">
                   <p className="nb-card-meta">
                     {getVerticalLabel(activeArticle.vertical)} · {activeArticle.dateLabel} · {activeArticle.readingTime}
@@ -581,13 +590,6 @@ export function NewsAppShell({
                     </div>
                   </div>
                 </div>
-                {activeArticle.coverImage ? (
-                  <div
-                    className="nb-image-slot nb-image-slot-filled"
-                    aria-hidden="true"
-                    style={{ backgroundImage: `url("${activeArticle.coverImage}")` }}
-                  />
-                ) : null}
                 <div className="nb-card-footer">
                   <Link className="nb-btn-read" href={getArticleHref(activeArticle.slug)}>
                     Read full article →

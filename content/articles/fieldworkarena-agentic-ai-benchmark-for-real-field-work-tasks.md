@@ -11,7 +11,7 @@ tags:
 status: "published"
 lead: "Researchers have introduced FieldWorkArena, a new benchmark for evaluating agentic AI performance in real-world field work tasks such as identifying safety hazards and procedural violations."
 digest: "FieldWorkArena introduces a benchmark for agentic AI that evaluates performance in real-world field work tasks."
-coverImage: ""
+coverImage: "/images/articles/fieldworkarena-agentic-ai-benchmark-for-real-field-work-tasks.jpg"
 author: "NewsBites Desk"
 ---
 Researchers have introduced FieldWorkArena, a new benchmark for evaluating agentic AI performance in real-world field work tasks such as identifying safety hazards and procedural violations.

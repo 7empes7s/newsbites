@@ -2,7 +2,7 @@
 title: "Artemis II comes home after a record-setting lunar flyby"
 slug: "artemis-ii-record-lunar-flyby-return"
 date: "2026-04-11"
-vertical: "space"
+vertical: "science"
 tags:
   - "nasa"
   - "artemis-ii"
@@ -10,12 +10,12 @@ tags:
   - "orion"
   - "jeremy-hansen"
   - "spaceflight"
-status: "approved"
+status: "published"
 panel_hints:
   nasa_mission: "Artemis II"
 lead: "NASA's Artemis II crew splashed down on April 10 after flying farther from Earth than any humans before and bringing back the first official moon-flyby images of the Artemis era."
 digest: "Artemis II launched on April 1, flew around the Moon on April 6, set a new human-distance record, and returned safely on April 10."
-coverImage: ""
+coverImage: "/images/articles/artemis-ii-record-lunar-flyby-return.png"
 author: "NewsBites Desk"
 ---
 

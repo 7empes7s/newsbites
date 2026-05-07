@@ -15,7 +15,7 @@ panel_hints:
     - IL
 lead: "UN chief urges US and Iran to extend ceasefire, calling for respect for international law and navigation rights in Strait of Hormuz."
 digest: "UN chief urges US and Iran to extend ceasefire and respect international law in Strait of Hormuz."
-coverImage: ""
+coverImage: "/images/articles/middle-east-live-14-april-un-chief-says-us-iran-ceasefire-must-continue-urges-re.jpg"
 author: "NewsBites Desk"
 ---
 The UN Secretary-General urged the United States and Iran to extend their recent ceasefire and reaffirmed the importance of respecting international law, particularly in the Strait of Hormuz.

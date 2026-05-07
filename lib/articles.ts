@@ -11,6 +11,15 @@ import type { PanelHints } from "@/lib/panels/types";
 
 const articlesDirectory = path.join(process.cwd(), "content/articles");
 
+export type ImageSource = {
+  type: "ai" | "stock";
+  provider?: string;
+  label?: string;
+  photographer?: string;
+  photographerUrl?: string;
+  sourceUrl?: string;
+};
+
 type Frontmatter = {
   title: string;
   slug: string;
@@ -21,6 +30,7 @@ type Frontmatter = {
   lead: string;
   digest?: string;
   coverImage?: string;
+  imageSource?: string; // JSON-encoded ImageSource
   author: string;
   panel_hints?: PanelHints;
 };
